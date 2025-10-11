@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Playwright Practice Page</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 40px;
+          background-color: #fafafa;
+        }
+        h1 {
+          color: #333;
+        }
+        input, select, button {
+          padding: 6px 10px;
+          margin: 5px 0;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 15px;
+        }
+        th, td {
+          border: 1px solid #ccc;
+          padding: 8px;
+          text-align: left;
+        }
+        th.sortable {
+          cursor: pointer;
+          background: #f5f5f5;
+        }
+        #message {
+          margin-top: 10px;
+          color: green;
+          font-weight: bold;
+        }
+        #modal {
+          display: none;
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          border: 1px solid #888;
+          padding: 20px;
+          box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+        #overlay {
+          display: none;
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5);
+        }
+        #spinner {
+          display: none;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #555;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          margin-top: 15px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        #login-error { color: red; display: none; }
+        #login-success { color: green; display: none; }
+    </style>
+
+    <script>
+        // --- LOGIN SECTION ---
+        function handleLogin() {
+          const email = document.getElementById("login-email").value.trim();
+          const password = document.getElementById("login-password").value.trim();
+          const error = document.getElementById("login-error");
+          const success = document.getElementById("login-success");
+
+          error.style.display = "none";
+          success.style.display = "none";
+
+          if (!email || !password) {
+            error.textContent = "Email and password are required!";
+            error.style.display = "block";
+            return;
+          }
+          if (!email.includes("@") || !email.includes(".")) {
+            error.textContent = "Invalid email format!";
+            error.style.display = "block";
+            return;
+          }
+          if (email === "admin@example.com" && password === "123456") {
+            success.textContent = "Login successful! Redirecting...";
+            success.style.display = "block";
+          } else {
+            error.textContent = "Incorrect email or password!";
+            error.style.display = "block";
+          }
+        }
+
+        // --- Filter + Sort ---
+        function filterTable() {
+          const filter = document.getElementById("filter").value.toLowerCase();
+          const rows = document.querySelectorAll("tbody tr");
+          rows.forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+          });
+        }
+
+        function sortTable(columnIndex) {
+          const table = document.querySelector("table tbody");
+          const rows = Array.from(table.querySelectorAll("tr"));
+          const sorted = rows.sort((a, b) => {
+            const aText = a.children[columnIndex].innerText;
+            const bText = b.children[columnIndex].innerText;
+            return aText.localeCompare(bText);
+          });
+          table.innerHTML = "";
+          sorted.forEach(row => table.appendChild(row));
+        }
+
+        // --- Form ---
+        function submitForm() {
+          const name = document.getElementById("name").value;
+          const role = document.getElementById("role").value;
+          const agree = document.getElementById("agree").checked;
+          if (!agree) {
+            alert("You must agree to the terms first!");
+            return;
+          }
+          document.getElementById("message").textContent =
+            "Submitted: " + name + " as " + role;
+        }
+
+        // --- Modal ---
+        function openModal() {
+          document.getElementById("overlay").style.display = "block";
+          document.getElementById("modal").style.display = "block";
+        }
+
+        function closeModal() {
+          document.getElementById("overlay").style.display = "none";
+          document.getElementById("modal").style.display = "none";
+        }
+
+        // --- Spinner simulation ---
+        function simulateLoading() {
+          const spinner = document.getElementById("spinner");
+          spinner.style.display = "block";
+          setTimeout(() => {
+            spinner.style.display = "none";
+            document.getElementById("message").textContent = "Data loaded successfully!";
+          }, 2000);
+        }
+    </script>
+</head>
+<body>
+
+<h1>Advanced Playwright Practice Page</h1>
+
+<!-- 🔐 LOGIN SECTION -->
+<section id="login-section" style="border:1px solid #ccc; padding:20px; margin-bottom:30px;">
+    <h2>Login Form</h2>
+    <label>Email:</label><br>
+    <input id="login-email" type="text" placeholder="Enter email" /><br>
+
+    <label>Password:</label><br>
+    <input id="login-password" type="password" placeholder="Enter password" /><br>
+
+    <button id="login-btn" onclick="handleLogin()">Login</button>
+    <p id="login-error"></p>
+    <p id="login-success"></p>
+</section>
+
+<hr>
+
+<h3>Form Section</h3>
+<label>Name:</label>
+<input id="name" placeholder="Your name" />
+<br>
+<label>Role:</label>
+<select id="role">
+    <option>Developer</option>
+    <option>Tester</option>
+    <option>Manager</option>
+</select>
+<br>
+<label><input type="checkbox" id="agree"> I agree to the terms</label>
+<br>
+<button id="submit" onclick="submitForm()">Submit</button>
+<div id="message"></div>
+
+<hr>
+
+<h3>Table Section</h3>
+<label for="filter">Filter table:</label>
+<input id="filter" onkeyup="filterTable()" placeholder="Type to filter names..." />
+<table>
+    <thead>
+    <tr>
+        <th class="sortable" onclick="sortTable(0)">Name</th>
+        <th class="sortable" onclick="sortTable(1)">Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>John Doe</td><td>Manager</td></tr>
+    <tr><td>Jane Smith</td><td>Developer</td></tr>
+    <tr><td>Chris Brown</td><td>QA Engineer</td></tr>
+    <tr><td>Alice White</td><td>Designer</td></tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h3>Modal & Spinner Section</h3>
+<button id="openModal" onclick="openModal()">Open Modal</button>
+<button id="loadBtn" onclick="simulateLoading()">Simulate Loading</button>
+<div id="spinner"></div>
+
+<div id="overlay" onclick="closeModal()"></div>
+<div id="modal">
+    <h3>Modal Window</h3>
+    <p>This is a sample modal dialog for Playwright testing.</p>
+    <button id="closeModal" onclick="closeModal()">Close</button>
+</div>
+
+</body>
+</html>
