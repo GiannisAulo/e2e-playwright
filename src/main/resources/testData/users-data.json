@@ -2,20 +2,32 @@
   {
     "keycloak": [
       {
-        "UserAdmin_01": "1234"
-      },
-      {
-        "UserAdmin_02": "1234"
+        "UserAdmin_01": {
+          "username": "JohnTest",
+          "password": "1234",
+          "role": "Admin"
+        },
+        "UserAdmin_02": {
+          "username": "JohnTest_02",
+          "password": "12345",
+          "role": "Admin_02"
+        }
       }
     ]
   },
   {
     "uumds": [
       {
-        "UserAdmin_01": "12345555"
-      },
-      {
-        "UserAdmin_02": "1234555444"
+        "UserAdmin_01": {
+          "username": "JohnTest",
+          "password": "1234",
+          "role": "Admin"
+        },
+        "UserAdmin_02": {
+          "username": "JohnTest_02",
+          "password": "12345",
+          "role": "Admin_02"
+        }
       }
     ]
   }

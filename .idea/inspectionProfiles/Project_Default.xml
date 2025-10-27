@@ -1,10 +1,12 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="ClassCanBeRecord" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="isIgnoringEnabled" value="true" />
       <option name="ignoredModules">
         <list>
+          <option value="e2e-playwright" />
           <option value="e2e-playwright" />
           <option value="e2e-playwright" />
         </list>
@@ -13,12 +15,14 @@
         <list>
           <option value="commons-codec:commons-codec:1.11" />
           <option value="org.apache.commons:commons-lang3:3.11" />
+          <option value="junit:junit:4.10" />
         </list>
       </option>
       <option name="ignoredReasons">
         <list>
           <option value="Not exploitable" />
           <option value="Other" />
+          <option value="Not exploitable" />
         </list>
       </option>
     </inspection_tool>
