@@ -5,12 +5,11 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import config.TestDataConfig;
 import org.testng.Assert;
+import pages.common.commonLocators.CommonLocators;
 import utils.elements.Elements;
+import utils.waits.WaitUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,10 +17,12 @@ public class VerificationUtils {
     private final TestDataConfig testDataConfig = new TestDataConfig();
     private final Page page;
     private final Elements elements;
-
+    private final WaitUtils waitUtils;
+    private final TableUtils table;
     public VerificationUtils(Page page) {
         this.page = page;
         elements = new Elements(this.page);
+        waitUtils = new WaitUtils(this.page);
     }
 
     public void verifyTooltipValue(String elementLocator, Properties params) {
@@ -56,112 +57,23 @@ public class VerificationUtils {
         }
     }
 
-    public void verifyInputRedHighlightedColor(By by) {
-        WebElement webElement = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(by);
-        String color = webElement.getCssValue("border");
-        if (color.equals("rgb(218, 33, 49)") || color.equals("red")) {
-            System.out.println("The input is highlighted as red.");
-        } else {
-            System.out.println("The input is not highlighted as red.");
+    public void verifyInputRedHighlightedColor(String inputElement) {
+        Locator inputLocator = page.locator(inputElement);
+        String borderColor = inputLocator.evaluate("el => window.getComputedStyle(el).borderColor").toString();
+        boolean isRed = borderColor.equals("rgb(218, 33, 49)") ||
+                borderColor.equals("red") ||
+                borderColor.startsWith("rgb(218, 33, 49");
+
+        if (!isRed) {
+            throw new AssertionError("Expected border color to be red (rgb(218, 33, 49)), but was: " + borderColor);
         }
-    }
-
-    /**
-     * Verify that all the registries have the Edit and Delete Actions available
-     *
-     * @param tableID The table id
-     */
-    public void verifyAvailableActionsOnTable(String tableID, boolean expectedVisibility) {
-        wait.waitForLoad();
-        int actionsColumn = table.getPTableColumnSequence(tableID, "Actions");
-        wait.forElementToBePresent(By.xpath("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]"));
-        String totalRecords = utils.webDriverFactory().getDriver().findElement(By.xpath("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]")).getText();
-        totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
-        int tableSize = 0;
-        do {
-            tableSize += table.getPTableBodyRows(tableID);
-            int currentRow = 1;
-            do {
-                boolean visibilityOfEdit = isElementPresent(By.xpath(
-                        "//table[@id='" + tableID + "']//tbody//tr[" + currentRow + "]/td[" + actionsColumn + "]" +
-                                "//button"));
-                Assert.assertEquals(visibilityOfEdit, expectedVisibility, "The Edit Action should be available.");
-                boolean visibilityOfDelete = isElementPresent(By.xpath(
-                        "//table[@id='" + tableID + "']//tbody//tr[" + currentRow + "]/td[" + actionsColumn + "]" +
-                                "//button"));
-                Assert.assertEquals(visibilityOfDelete, expectedVisibility, "The Delete Action should be available.");
-                currentRow++;
-            }
-            while (currentRow <= table.getPTableBodyRows(tableID));
-            if (table.isGoToNextPageButtonEnabled(tableID))
-                table.goToNextPage(tableID);
-            wait.waitForLoad();
-        } while (tableSize < Integer.parseInt(totalRecords));
-    }
-
-    /**
-     * Verifies the pagination and limitation of displayed results
-     *
-     * @param tableID    The element id of table
-     * @param limitation The number of pagination
-     */
-    public void verifyPaginationAndLimitation(String tableID, int limitation) {
-        WebElement pDropdown = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver()
-                .findElement(By.xpath(".//*[@id='" + tableID + "']//following::eui-dropdown"));
-        pDropdown.click();
-        browserControls.scrollToElement(pDropdown);
-        wait.forElementToBePresent(By.xpath("//following::button[@role='listitem']/div[text()='" + limitation + "']"));
-        pDropdown.findElement(By.xpath("//following::button[@role='listitem']/div[text()='" + limitation + "']"))
-                .click();
-        wait.waitForLoad();
-        wait.sleep(2, TimeUnit.SECONDS);
-        wait.forElementToBePresent(By.id(tableID));
-        String totalRecords = utils.webDriverFactory().getDriver().findElement(
-                By.xpath("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]")).getText();
-        totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
-        int intTotalRecords = Integer.parseInt(totalRecords);
-        if (intTotalRecords < 10) {
-            totalRecords = totalRecords.substring(totalRecords.lastIndexOf("of ") + 1).trim();
-            intTotalRecords = Integer.parseInt(totalRecords);
-        }
-        int numOfRows = 0;
-        int rest;
-        do {
-
-            int actualNumOfRows = table.getPTableBodyRows(tableID);
-            rest = intTotalRecords - actualNumOfRows - numOfRows;
-
-            if (rest != 0)
-                Assert.assertEquals(actualNumOfRows, limitation, "The table rows exceed the limitation " +
-                        "of maximum displayed results. The results should be equals or less than " + limitation +
-                        " but was " + actualNumOfRows);
-            else
-                verifyLimitationOfTableRows(actualNumOfRows, limitation);
-            numOfRows = numOfRows + actualNumOfRows;
-
-            if (table.isGoToNextPageButtonEnabled(tableID))
-                table.goToNextPage(tableID);
-        }
-        while (rest != 0);
-        table.goToFirstPage(tableID);
-    }
-
-    /**
-     * Verifies that the user can move through the table by clicking the pagination buttons
-     */
-    public void verifyFunctionalityOfPaginationButtons(String tableID) {
-        wait.waitForLoad();
-        table.goToFirstPage(tableID);
-        table.goToNextPage(tableID);
-        table.goToPreviousPage(tableID);
-        table.goToLastPage(tableID);
     }
 
     /**
      * Verifies the availability of pagination buttons
      */
     public void verifyAvailabilityOfPaginationButtons(String tableID) {
-        table.goToFirstPage(tableID);
+        goToFirstPage(tableID);
         String firstPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
                         By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
                                 "span[contains(@aria-label,'Go to first page')]//ancestor::button"))
@@ -266,22 +178,14 @@ public class VerificationUtils {
     }
 
     /**
-     * Verify the Notification Alert is displayed
+     * Verifies the feedback msg
+     *
+     * @param errorMessage
      */
-    public void verifyConfirmationAlertIsDisplayed() {
-        wait.forAlertToBePresent();
-        com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().switchTo().alert();
-    }
-
-    public void verifyDisplayedModalMessage(Properties params) {
-        String expectedMessage = params.getProperty("Message");
-        verifyModalMessage(expectedMessage);
-    }
-
     public void verifyInputErrorMessage(String errorMessage) {
         System.out.println("Verifying error message...");
-        wait.forElementToBePresent(GeneralElements.ERROR_FEEDBACK_MESSAGE);
-        Assert.assertEquals(element.getElement(GeneralElements.ERROR_FEEDBACK_MESSAGE).getText().trim(), errorMessage);
+        waitUtils.waitForVisible(CommonLocators.ERROR_FEEDBACK_MESSAGE);
+        Assert.assertEquals(elements.input().getText(CommonLocators.ERROR_FEEDBACK_MESSAGE), errorMessage);
     }
 
 
@@ -316,69 +220,6 @@ public class VerificationUtils {
         wait.waitForElement(element.getElement(GeneralElements.WARNING_NOTIFICATION));
         String actualWarning = element.getElementText(GeneralElements.WARNING_NOTIFICATION);
         Assert.assertEquals(actualWarning.trim(), expectedWarning.trim(), "Wrong Warning message !!!");
-    }
-
-    public void verifyConfirmationDialogIsClosed() {
-        wait.waitForInvisibilityOfElement(By.xpath("//div[@role='dialog']"));
-        System.out.println("~ Verifying that Confirmation dialog is closed");
-        Assert.assertFalse(isElementPresent(By.xpath("//div[@role='dialog']")), "Element is present");
-    }
-
-    public void verifyConfirmationDialog() {
-        wait.waitForVisibilityOfElement(By.xpath("//div[@role='dialog' and @data-e2e='eui-dialog']"));
-        System.out.println("~ Verifying that Confirmation dialog");
-        Assert.assertTrue(isElementPresent(By.xpath("//div[@role='dialog' and @data-e2e='eui-dialog']")), "Are you sure you want to delete this emission?");
-    }
-
-    public Boolean verifyState(String tableID, QuarterlyReportPage.QUARTER quarter, Properties params) {
-        String expectedState = params.getProperty(STATE);
-        Map<String, String> reportDate = findQuarter(quarter.getLabel());
-        String value = reportDate.get("quarter");
-        int rowSize = table.getPTableBodyRows(tableID);
-        int columnSequenceState = table.getPTableColumnSequence(tableID, "State");
-        int columnSequenceQuarter = table.getPTableColumnSequence(tableID, "Quarter");
-        int rowSequence = 1;
-        for (int i = 1; i <= rowSize; i++) {
-            String rowRegistry = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                            By.xpath("//table[@id='" + tableID + "']//tbody//tr[" + i + "]/td[" + columnSequenceQuarter + "]/span"))
-                    .getText();
-            if (rowRegistry.equals(value)) {
-                rowSequence = i;
-                break;
-            }
-        }
-        Assert.assertEquals(com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//tbody//tr[" + rowSequence + "]/td[" + columnSequenceState + "]/span"))
-                .getText(), expectedState, "Wrong state");
-        return true;
-    }
-
-    private void verifyLimitationOfTableRows(int actualNumOfRows, int maximumRows) {
-        Assert.assertTrue(actualNumOfRows < maximumRows,
-                "The table rows exceed the limitation" + "of maximum displayed results. " +
-                        "The results should be equals or less than " + maximumRows + " but was "
-                        + actualNumOfRows);
-    }
-
-    public static void isElementEnabled(WebElement webElement, String errorMessage) {
-        if (webElement.getTagName().equals("p-dropdown")) {
-            Assert.assertFalse(webElement.findElement(By.xpath("./div")).getAttribute("class").contains("p-disable"),
-                    "Field is not Enabled");
-        } else if (webElement.getTagName().equals("ux-datepicker")) {
-            Assert.assertNull(webElement.getAttribute("isdisabled"), "Field is not Enabled");
-        } else {
-            Assert.assertTrue(webElement.isEnabled(), errorMessage);
-        }
-    }
-
-    public boolean isElementDisabled(By locator) {
-        WebElement webElement = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(locator);
-        return !webElement.isEnabled();
-    }
-
-    public boolean isElementEnabled(By locator) {
-        WebElement webElement = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(locator);
-        return webElement.isEnabled();
     }
 
     public boolean isNotificationSuccessMessageDisplayed(String message) {
@@ -472,58 +313,6 @@ public class VerificationUtils {
         Assert.assertEquals(actualErrors, errors, "Incorrect number of displayed errors");
     }
 
-    public boolean verifyDownloadedFileExists(String fileName) {
-        wait.sleep(5, TimeUnit.SECONDS);
-        String userProfile = System.getenv("USERPROFILE");
-        String path = userProfile + "\\Downloads";
-        File dir = new File(path);
-        File[] dirContents = dir.listFiles();
-        boolean found = false;
-        for (int i = 0; i < dirContents.length; i++) {
-            if (dirContents[i].getName().contains(fileName)) {
-                System.out.println("File Found !!!");
-                dirContents[i].delete();
-                found = true;
-                return found;
-            }
-        }
-        Assert.assertEquals(found, false, "File not found");
-        return false;
-    }
-
-    /*
-    Verify that the file is downloaded
-     */
-    public void verifyFileIsDownloaded(Properties params) throws IOException {
-        Wait.sleep(5, TimeUnit.SECONDS);
-//        BrowserControls browserControls1 =new BrowserControls(utils);
-        String expectedFilename = params.getProperty(FILENAME);
-        download.openDownloadsTab();
-        String latestDownloadFileName = download.getLatestDownloadFileName();
-        com.intrasoft.cbam.utils.Utils.closeCurrentHandle();
-        com.intrasoft.cbam.utils.Utils.switchWindowHandle(0);
-        Assert.assertTrue(Objects.requireNonNull(latestDownloadFileName).contains(expectedFilename),
-                "The file is not downloaded. Expected: " + expectedFilename + " but found: " + latestDownloadFileName);
-//        browserControls1.closeCurrentTab();
-    }
-
-    public boolean isExpanded(By by) {
-        return new Element(utils).getElement(by).getAttribute("aria-label").equals("collapse");
-    }
-
-    public void verifyFileUploaded() {
-        Assert.assertTrue(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filename')]")));
-        Assert.assertTrue(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filesize')]")));
-        Assert.assertTrue(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filetype')]")));
-        Assert.assertTrue(isElementPresent(By.xpath("//div[contains(@class,'file-upload__total-size')]")));
-    }
-
-    public void verifyFileUploadedIsRemoved() {
-        Assert.assertFalse(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filename')]")));
-        Assert.assertFalse(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filesize')]")));
-        Assert.assertFalse(isElementPresent(By.xpath("//div[contains(@class,'file-upload__preview__filetype')]")));
-        Assert.assertFalse(isElementPresent(By.xpath("//div[contains(@class,'file-upload__total-size')]")));
-    }
 
     public void verifyAvailableActionsOnTableUsingList(String tableID, boolean expectedVisibility, TABLETYPE tabletype) {
         List<String> availableActions = getListOfAvailableActionsBasedOnTable(tabletype);

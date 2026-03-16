@@ -19,6 +19,7 @@ public class Elements {
     private final Input input;
     private final MultiDropdown multiDropdown;
     private final RadioButton radioButton;
+    private final Page page;
 
     public Elements(Page page) {
         this.button = new Button(page);
@@ -29,14 +30,50 @@ public class Elements {
         this.input = new Input(page);
         this.multiDropdown = new MultiDropdown(page);
         this.radioButton = new RadioButton(page);
+        this.page = page;
     }
 
-    public Button button() { return button; }
-    public Checkbox checkbox() { return checkbox; }
-    public ComboBox comboBox() { return comboBox; }
-    public Datepicker datepicker() { return datepicker; }
-    public Dropdown dropdown() { return dropdown; }
-    public Input input() { return input; }
-    public MultiDropdown multiDropdown() { return multiDropdown; }
-    public RadioButton radioButton() { return radioButton; }
+    public Button button() {
+        return button;
+    }
+
+    public Checkbox checkbox() {
+        return checkbox;
+    }
+
+    public ComboBox comboBox() {
+        return comboBox;
+    }
+
+    public Datepicker datepicker() {
+        return datepicker;
+    }
+
+    public Dropdown dropdown() {
+        return dropdown;
+    }
+
+    public Input input() {
+        return input;
+    }
+
+    public MultiDropdown multiDropdown() {
+        return multiDropdown;
+    }
+
+    public RadioButton radioButton() {
+        return radioButton;
+    }
+
+    public boolean isElementPresent(String selector) {
+        return page.locator(selector).count() > 0;
+    }
+
+    public String getAttribute(String selector, String attributeName) {
+        return page.locator(selector).getAttribute(attributeName);
+    }
+
+    public void hover(String selector) {
+        page.locator(selector).hover();
+    }
 }

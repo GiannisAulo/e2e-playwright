@@ -1,120 +1,302 @@
 package utils.waits;
 
-import java.time.Duration;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.TimeoutError;
+import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.options.WaitForSelectorState;
+
 import java.util.concurrent.TimeUnit;
 
 public class WaitUtils {
-    private static final long DEFAULT_TIMEOUT = 10;
-    private static final long DEFAULT_POLL_INTERVAL = 2;
+    private static final long DEFAULT_TIMEOUT = 10000; // 10 seconds in milliseconds
+    private static final long DEFAULT_POLL_INTERVAL = 250; // 250 milliseconds
 
-    com.intrasoft.cbam.utils.Utils utils;
+    private Page page;
 
-    EnvDataConfig envDataConfig;
-
-    static WebDriverWait wait;
-
-    WebDriver driver;
-
-    public WaitUtils(com.intrasoft.cbam.utils.Utils utils) {
-        this.utils = utils;
-        envDataConfig = new EnvDataConfig();
-        driver = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver();
+    public WaitUtils(Page page) {
+        this.page = page;
     }
 
+    // ==================== Page Load Waits ====================
+
+    /**
+     * Wait for page to be fully loaded (document.readyState = complete + network idle + loading spinners)
+     */
     public void waitForLoad() {
-        ExpectedCondition<Boolean> expectation =
-                driver -> {
-                    assert driver != null;
-                    return ((JavascriptExecutor) utils.webDriverFactory().getDriver())
-                            .executeScript("return document.readyState").toString().equals("complete");
-                };
         try {
-            utils.webDriverFactory().getWait().until(expectation);
+            page.waitForFunction("document.readyState === 'complete'");
+            page.waitForLoadState(LoadState.NETWORKIDLE);
             waitForLoadingImage();
-            sleep(4500, TimeUnit.MILLISECONDS);
-        } catch (Throwable error) {
-            Assert.fail("Timeout waiting for Page Load Request to complete.");
+            sleep(500, TimeUnit.MILLISECONDS);
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Timeout waiting for page to load completely");
         }
     }
 
-    public void forAlertToBePresent() {
-        utils.webDriverFactory().getWait().until(ExpectedConditions.alertIsPresent());
-    }
-
-    public void waitForLoadingImage() {
-        utils.webDriverFactory()
-                .getFluentWait()
-                .pollingEvery(Duration.ofMillis(250))
-                .until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".spinner-box")));
-        utils.webDriverFactory()
-                .getFluentWait()
-                .pollingEvery(Duration.ofMillis(250))
-                .until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div [@class='spinner-container active']")));
-    }
-
-    public void waitForElement(WebElement element) {
-        if (element != null) {
-            utils.webDriverFactory().getWait()
-                    .until(ExpectedConditions.visibilityOf(element));
-        } else {
-            System.out.println("ERROR Element is NOT present.");
-        }
-    }
-
-    public void forElementToBePresent(By by) {
+    /**
+     * Wait for page to be fully loaded with custom timeout
+     */
+    public void waitForLoad(int timeout) {
         try {
-            com.intrasoft.cbam.utils.Utils.webDriverFactory().getWait().until(ExpectedConditions.visibilityOfElementLocated(by));
-        } catch (Throwable error) {
-            Assert.fail("Timeout waiting for element to be present.");
+            page.waitForLoadState(LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(timeout));
+            waitForLoadingImage();
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Page did not reach network idle state after " + timeout + " ms");
         }
     }
 
+    /**
+     * Wait for DOM content to be loaded
+     */
+    public void waitForDOMContentLoaded() {
+        try {
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
+        } catch (TimeoutError e) {
+            throw new RuntimeException("DOM content not loaded");
+        }
+    }
+
+    /**
+     * Wait for loading spinners/images to disappear
+     */
+    public void waitForLoadingImage() {
+        // Wait for spinner box to be hidden
+        waitForHidden(".spinner-box", (int) DEFAULT_TIMEOUT);
+
+        // Wait for active spinner container to be hidden
+        waitForHidden("div.spinner-container.active", (int) DEFAULT_TIMEOUT);
+    }
+
+    // ==================== Element Visibility Waits ====================
+
+    /**
+     * Wait for element to be visible
+     */
+    public void waitForVisible(String selector, int timeout) {
+        Locator locator = page.locator(selector);
+        try {
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.VISIBLE));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Element not visible after " + timeout + " ms: " + selector);
+        }
+    }
+
+    /**
+     * Wait for element to be visible with default timeout
+     */
+    public void waitForVisible(String selector) {
+        waitForVisible(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Wait for locator to be visible
+     */
+    public void waitForElement(Locator locator) {
+        try {
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(DEFAULT_TIMEOUT)
+                    .setState(WaitForSelectorState.VISIBLE));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Element is NOT present/visible");
+        }
+    }
+
+    /**
+     * Wait for element to be present in DOM (attached)
+     */
+    public void waitForElementToBePresent(String selector, int timeout) {
+        Locator locator = page.locator(selector);
+        try {
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.ATTACHED));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Element not present after " + timeout + " ms: " + selector);
+        }
+    }
+
+    /**
+     * Wait for element to be present with default timeout
+     */
+    public void waitForElementToBePresent(String selector) {
+        waitForElementToBePresent(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Wait for element to be hidden/invisible
+     */
+    public void waitForHidden(String selector, int timeout) {
+        try {
+            // First check if element exists
+            if (page.locator(selector).count() == 0) {
+                return; // Element doesn't exist, so it's "hidden"
+            }
+
+            Locator locator = page.locator(selector);
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.HIDDEN));
+        } catch (TimeoutError e) {
+            // Element might not exist at all, which is acceptable for "hidden"
+            if (page.locator(selector).count() == 0) {
+                return;
+            }
+            throw new RuntimeException("Element not hidden after " + timeout + " ms: " + selector);
+        }
+    }
+
+    /**
+     * Wait for element to be hidden with default timeout
+     */
+    public void waitForHidden(String selector) {
+        waitForHidden(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Wait for invisibility of element
+     */
+    public void waitForInvisibilityOfElement(String selector) {
+        waitForHidden(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    // ==================== Element State Waits ====================
+
+    /**
+     * Wait for element to be clickable (visible + enabled)
+     */
+    public void waitForElementToBeClickable(String selector, int timeout) {
+        Locator locator = page.locator(selector);
+        long startTime = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            try {
+                if (locator.isVisible() && locator.isEnabled()) {
+                    return;
+                }
+            } catch (Exception e) {
+                // Element might not be in DOM yet, continue waiting
+            }
+            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+        throw new RuntimeException("Element not clickable after " + timeout + " ms: " + selector);
+    }
+
+    /**
+     * Wait for element to be clickable with default timeout
+     */
+    public void waitForElementToBeClickable(String selector) {
+        waitForElementToBeClickable(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Wait for dropdown element (with small delay + clickable check)
+     */
+    public void waitForDropdownElement(String selector) {
+        sleep(300, TimeUnit.MILLISECONDS);
+        waitForElementToBeClickable(selector);
+    }
+
+    /**
+     * Wait for element to be enabled
+     */
+    public void waitForEnabled(String selector, int timeout) {
+        Locator locator = page.locator(selector);
+        long startTime = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            if (locator.isEnabled()) {
+                return;
+            }
+            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+        throw new RuntimeException("Element not enabled after " + timeout + " ms: " + selector);
+    }
+
+    /**
+     * Wait for element to be enabled with default timeout
+     */
+    public void waitForEnabled(String selector) {
+        waitForEnabled(selector, (int) DEFAULT_TIMEOUT);
+    }
+
+    // ==================== Text/Content Waits ====================
+
+    /**
+     * Wait for text to be present in element
+     */
+    public void waitForText(String selector, String expectedText, int timeout) {
+        Locator locator = page.locator(selector);
+        long startTime = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            String actualText = locator.textContent();
+            if (actualText != null && actualText.contains(expectedText)) {
+                return;
+            }
+            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+        throw new RuntimeException("Text '" + expectedText + "' not found in element after " + timeout + " ms: " + selector);
+    }
+
+    /**
+     * Wait for text to be present with default timeout
+     */
+    public void waitForText(String selector, String expectedText) {
+        waitForText(selector, expectedText, (int) DEFAULT_TIMEOUT);
+    }
+
+    // ==================== Element Count Waits ====================
+
+    /**
+     * Wait for element count to match expected value
+     */
+    public void waitForElementCount(String selector, int expectedCount, int timeout) {
+        long startTime = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            int actualCount = page.locator(selector).count();
+            if (actualCount == expectedCount) {
+                return;
+            }
+            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+
+        int actualCount = page.locator(selector).count();
+        throw new RuntimeException("Element count did not match. Expected: " + expectedCount +
+                ", Actual: " + actualCount + " after " + timeout + " ms");
+    }
+
+    // ==================== Custom Condition Waits ====================
+
+    /**
+     * Custom wait condition using a lambda
+     */
+    public void waitForCondition(java.util.function.Supplier<Boolean> condition, int timeout, String errorMessage) {
+        long startTime = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - startTime < timeout) {
+            if (condition.get()) {
+                return;
+            }
+            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        }
+        throw new RuntimeException(errorMessage + " after " + timeout + " ms");
+    }
+
+    // ==================== Utility Methods ====================
+
+    /**
+     * Sleep for specified duration
+     */
     public static void sleep(int timeout, TimeUnit timeUnit) {
         try {
             timeUnit.sleep(timeout);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Sleep interrupted", e);
         }
-    }
-
-    public void waitForElementToBeClickable(By by) {
-        try {
-            utils.webDriverFactory().getFluentWait()
-                    .until(ExpectedConditions.elementToBeClickable(by));
-        } catch (Exception e) {
-            System.out.println("ERROR Element is NOT present.");
-        }
-    }
-
-    public void waitForDropdownElement(By by) {
-        sleep(300, TimeUnit.MILLISECONDS);
-        waitForElementToBeClickable(by);
-    }
-
-    public void waitForVisibilityOfElement(By by) {
-        utils.webDriverFactory().getFluentWait()
-                .until(ExpectedConditions.visibilityOfElementLocated(by));
-    }
-
-    public Boolean isElementDisplayed(By by) {
-        try {
-            driver.findElement(by).isDisplayed();
-            return true;
-        } catch (NoSuchElementException ex) {
-            return false;
-        }
-    }
-
-    public void waitForInvisibilityOfElement(By element) {
-        if (element != null) {
-            utils.webDriverFactory().getWait().until(ExpectedConditions.invisibilityOfElementLocated(element));
-        } else {
-            System.out.println("ERROR Element is visible after " + envDataConfig.getTimeout() + " seconds");
-        }
-
-    }
-
-    public void waitForPresenceOfElement(By by) {
-        utils.webDriverFactory().getWait().until(ExpectedConditions.presenceOfElementLocated(by));
     }
 }

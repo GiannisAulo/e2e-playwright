@@ -2,7 +2,7 @@ package pages.common.components;
 
 import com.microsoft.playwright.Page;
 import config.TestDataConfig;
-import pages.base.BaseElements;
+import pages.pageObject.BaseElements;
 import utils.helpers.VerificationUtils;
 import utils.elements.Elements;
 import utils.helpers.TableUtils;
@@ -21,11 +21,11 @@ public abstract class TablePageComponent extends BaseElements {
         this.elements = new Elements(page);
     }
 
-    private TableUtils getTableInstance() {
+    private TableUtils getTable() {
         return (tableUtils == null) ? new TableUtils(page) : tableUtils;
     }
 
-    private VerificationUtils getVerificationsInstance() {
+    private VerificationUtils getVerifications() {
         return (verificationUtils == null) ? new VerificationUtils(page) : verificationUtils;
     }
 
@@ -34,18 +34,18 @@ public abstract class TablePageComponent extends BaseElements {
      */
     protected void verifyColumnLabels(Properties params) {
         List<String> expectedHeaders = TestDataConfig.multipleOrSingleTestData(params, "ColumnLabels");
-        getTableInstance().verifyColumnLabels(getTableId(), expectedHeaders);
+        getTable().verifyColumnLabels(getTableId(), expectedHeaders);
     }
 
     /**
      * Verify that the table data matches expected rows and columns.
      */
     protected void verifyTableValues(List<List<String>> expectedData) {
-        getTableInstance().verifyTableValues(getTableId(), expectedData);
+        getTable().verifyTableValues(getTableId(), expectedData);
     }
 
     protected void tableIsEmpty() {
-        getTableInstance().verifyTableIsEmpty(getTableId());
+        getTable().verifyTableIsEmpty(getTableId());
     }
 
 }

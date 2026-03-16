@@ -1,10 +1,20 @@
 package utils.enums;
 
 public enum Actions {
-    EDIT,
-    DELETE,
-    UPDATE,
-    ADD,
-    DOWNLOAD,
-    UPLOAD
+    EDIT("Edit"),
+    DELETE("Delete"),
+    UPDATE("Update"),
+    ADD("Add"),
+    DOWNLOAD("Download"),
+    UPLOAD("Upload");
+
+    private final String identifier;
+
+    Actions(String identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
 }

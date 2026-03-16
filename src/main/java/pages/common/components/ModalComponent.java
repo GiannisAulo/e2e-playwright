@@ -1,7 +1,7 @@
 package pages.common.components;
 
-import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
 import utils.elements.Elements;
 
@@ -72,7 +72,7 @@ public class ModalComponent {
      * @return true if visible
      */
     public boolean isModalVisible() {
-        return elements.button().isVisible(MODAL);
+        return elements.button().isButtonVisible(MODAL);
     }
 
     /**
@@ -126,14 +126,14 @@ public class ModalComponent {
      * Accept/confirm the dialog (clicks first accept button)
      */
     public void acceptConfirmation() {
-        page.locator(ACCEPT_BUTTON).first().click();
+        elements.button().clickFirst(ACCEPT_BUTTON);
     }
 
     /**
      * Decline/dismiss the dialog (clicks first decline button)
      */
     public void declineConfirmation() {
-        page.locator(DECLINE_BUTTON).first().click();
+        elements.button().clickFirst(DECLINE_BUTTON);
     }
 
     /**
@@ -152,6 +152,7 @@ public class ModalComponent {
 
     /**
      * Accept specific confirmation by index
+     *
      * @param index - 0-based index of the button
      */
     public void acceptByIndex(int index) {
@@ -160,6 +161,7 @@ public class ModalComponent {
 
     /**
      * Decline specific confirmation by index
+     *
      * @param index - 0-based index of the button
      */
     public void declineByIndex(int index) {
@@ -170,6 +172,7 @@ public class ModalComponent {
 
     /**
      * Check if confirmation dialog is visible
+     *
      * @return true if visible
      */
     public boolean isConfirmationVisible() {
@@ -178,6 +181,7 @@ public class ModalComponent {
 
     /**
      * Get the confirmation dialog title
+     *
      * @return dialog title text
      */
     public String getConfirmationTitle() {
@@ -186,6 +190,7 @@ public class ModalComponent {
 
     /**
      * Get the confirmation dialog message
+     *
      * @return dialog message text
      */
     public String getConfirmationMessage() {
@@ -194,6 +199,7 @@ public class ModalComponent {
 
     /**
      * Check if accept button is enabled
+     *
      * @return true if enabled
      */
     public boolean isAcceptButtonEnabled() {
@@ -202,6 +208,7 @@ public class ModalComponent {
 
     /**
      * Wait for confirmation dialog to appear
+     *
      * @param timeout - timeout in milliseconds
      */
     public void waitForConfirmation(int timeout) {
@@ -212,6 +219,7 @@ public class ModalComponent {
 
     /**
      * Wait for confirmation dialog to disappear
+     *
      * @param timeout - timeout in milliseconds
      */
     public void waitForConfirmationToClose(int timeout) {

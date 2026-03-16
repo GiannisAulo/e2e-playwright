@@ -2,8 +2,6 @@ package utils.elements.button;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.TimeoutError;
-import com.microsoft.playwright.options.WaitForSelectorState;
 
 public class Button {
     private final Page page;
@@ -24,39 +22,12 @@ public class Button {
         page.locator(selector).dblclick();
     }
 
-    public boolean isVisible(String selector) {
+    public boolean isButtonVisible(String selector) {
         return page.locator(selector).isVisible();
     }
 
-    public boolean isEnabled(String selector) {
+    public boolean isButtonEnabled(String selector) {
         return page.locator(selector).isEnabled();
-    }
-
-    public void waitForVisible(String selector, int timeout) {
-        Locator locator = page.locator(selector);
-        try {
-            locator.waitFor(new Locator.WaitForOptions()
-                    .setTimeout(timeout)
-                    .setState(WaitForSelectorState.VISIBLE));
-        } catch (TimeoutError e) {
-            throw new RuntimeException("Button not visible after " + timeout + " ms: " + selector);
-        }
-    }
-
-    public String getText(String selector) {
-        return page.locator(selector).textContent();
-    }
-
-    public String getAttribute(String selector, String attributeName) {
-        return page.locator(selector).getAttribute(attributeName);
-    }
-
-    public void hover(String selector) {
-        page.locator(selector).hover();
-    }
-
-    public void scrollIntoView(String selector) {
-        page.locator(selector).scrollIntoViewIfNeeded();
     }
 
     public void safeClick(String selector) {
@@ -66,5 +37,9 @@ public class Button {
         } else {
             throw new IllegalStateException("Button is not clickable: not visible or disabled: " + selector);
         }
+    }
+
+    public boolean isButtonExpanded(String selector) {
+        return page.locator(selector).getAttribute("aria-label").equals("collapse");
     }
 }

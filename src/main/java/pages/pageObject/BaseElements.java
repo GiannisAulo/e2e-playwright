@@ -1,6 +1,6 @@
-package pages.base;
+package pages.pageObject;
 
-import ui.pages.common.components.IPageElements;
+import pages.common.components.interfaces.IPageElements;
 
 /**
  * BaseElements holds common locators for all pages.

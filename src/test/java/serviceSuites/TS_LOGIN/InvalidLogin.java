@@ -3,8 +3,8 @@ package serviceSuites.TS_LOGIN;
 import com.microsoft.playwright.Locator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import ui.pages.base.Base;
-import ui.pages.login.LoginPage;
+import pages.pageObject.Base;
+import pages.login.LoginPage;
 
 public class InvalidLogin extends Base {
     @Test

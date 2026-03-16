@@ -33,7 +33,7 @@ public class AlertComponent {
      * @return true if error visible
      */
     public boolean isErrorDisplayed() {
-        return elements.button().isVisible(ERROR_MESSAGE);
+        return elements.button().isButtonVisible(ERROR_MESSAGE);
     }
 
     /**
@@ -64,7 +64,7 @@ public class AlertComponent {
      * @return true if warning visible
      */
     public boolean isWarningDisplayed() {
-        return elements.button().isVisible(WARNING_ALERT);
+        return elements.button().isButtonVisible(WARNING_ALERT);
     }
 
     /**
@@ -73,7 +73,7 @@ public class AlertComponent {
      * @return warning message content
      */
     public String getWarningMessage() {
-        if (elements.button().isVisible(WARNING_NOTIFICATION)) {
+        if (elements.button().isButtonVisible(WARNING_NOTIFICATION)) {
             return page.locator(WARNING_NOTIFICATION).textContent().trim();
         }
         return page.locator(WARNING_ALERT).textContent().trim();
@@ -107,7 +107,7 @@ public class AlertComponent {
      * @return true if modal alert visible
      */
     public boolean isModalAlertDisplayed() {
-        return elements.button().isVisible(MODAL_ALERT);
+        return elements.button().isButtonVisible(MODAL_ALERT);
     }
 
     // ==================== SUCCESS MESSAGES ====================
@@ -118,7 +118,7 @@ public class AlertComponent {
      * @return true if success visible
      */
     public boolean isSuccessDisplayed() {
-        return elements.button().isVisible(SUCCESS_MESSAGE);
+        return elements.button().isButtonVisible(SUCCESS_MESSAGE);
     }
 
     /**
@@ -138,7 +138,7 @@ public class AlertComponent {
      * @return true if info visible
      */
     public boolean isInfoDisplayed() {
-        return elements.button().isVisible(INFO_MESSAGE);
+        return elements.button().isButtonVisible(INFO_MESSAGE);
     }
 
     /**

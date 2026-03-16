@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import org.testng.Assert;
+import org.testng.reporters.jq.Model;
 
 public class RecoursesConfig {
     public String getOutputDir() {
@@ -18,58 +19,8 @@ public class RecoursesConfig {
         return getResourcesPath() + "/test-data/input-dir/";
     }
 
-    public String getRequestReplyData() {
-        return getResourcesPath() + "/test-data/input-dir/RequestReplyData/";
-    }
-
-    public String getStandaloneLitigation() {
-        return getResourcesPath() + "/test-data/input-dir/standaloneLitigation/";
-    }
-
-    public String getSearchReportsData() {
-        return getResourcesPath() + "/test-data/input-dir/searchReportsData/";
-    }
-
-    public String getRequestDelay() {
-        return getResourcesPath() + "/test-data/input-dir/RequestDelaySubmission/";
-    }
-
     public String getInitialData() {
         return getResourcesPath() + "/test-data/input-dir/InitialData/";
-    }
-
-    public String getO3CIData() {
-        return getResourcesPath() + "/test-data/input-dir/CbamBridge/";
-    }
-
-    public String getMappingsInputDir() {
-        return getResourcesPath() + "/test-data/input-dir/mappings/";
-    }
-
-    public String getNcaUploadFiles() {
-        return getResourcesPath() + "/test-data/input-dir/ncaUploadFiles/";
-    }
-
-    public String getSurvDataCSVInitial() {
-        return getResourcesPath() + "/test-data/input-dir/SurvDataInitial/csv/";
-    }
-
-    public String getSurvDataJSONInitial() {
-        return getResourcesPath() + "/test-data/input-dir/SurvDataInitial/json/";
-    }
-
-    public String getNisInitialData() {
-        return getResourcesPath() + "/test-data/input-dir/NisInitialData/";
-    }
-
-    public String getCbamBridge() { return getResourcesPath() + "/test-data/input-dir/CbamBridge/"; }
-
-    public String getValidateReport() {
-        return getResourcesPath() + "/test-data/input-dir/ValidateO3CIReports/";
-    }
-
-    public String getUploadZip() {
-        return getResourcesPath() + "/test-data/input-dir/UploadZip/";
     }
 
     public String getTestDataDir() {
@@ -148,46 +99,4 @@ public class RecoursesConfig {
         }
         return model.getProperties().getProperty(propertyName);
     }
-
-    public String getTargetPath() {
-        String absPath = Paths.get(".")
-                .toAbsolutePath().normalize().toString().replace("\\", "/");
-
-        String modulePath = this.getClass().getClassLoader().getResource(".").getPath();
-        modulePath = modulePath.replace("\\", "/");
-        modulePath = modulePath.replace("test-classes", "");
-        modulePath = modulePath.replace("classes", "");
-        modulePath = modulePath.replace(absPath, "");
-        modulePath = modulePath.replace("//", "/");
-
-        return absPath + modulePath;
-    }
-
-
-    public static String getAttachmentFilepath(String fileName) {
-        File targetFile = new File(new ResourcesConfig().getUploadZip() + fileName);
-        Assert.assertTrue(targetFile.exists() && targetFile.isFile(), "Could not locate attachment file: " + fileName);
-        return targetFile.getAbsolutePath();
-    }
-
-    private static String bytesToBinary(byte[] bytes) {
-        return new BigInteger(1, bytes).toString(2); // Convert bytes to binary string
-    }
-
-    private static String binaryToBase64(String binaryString) {
-        byte[] bytes = new BigInteger(binaryString, 2).toByteArray(); // Convert binary string to bytes
-        return Base64.getEncoder().encodeToString(bytes); // Encode bytes to Base64 string
-    }
-
-    public static String zipFileDecoder(String filename) {
-        try {
-            byte[] bytes = java.nio.file.Files.readAllBytes(Path.of(getAttachmentFilepath(filename)));
-            String binaryString = bytesToBinary(bytes);
-            String base64 = binaryToBase64(binaryString);
-            return base64;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

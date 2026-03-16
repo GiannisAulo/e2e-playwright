@@ -2,22 +2,31 @@ package utils.helpers;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.LoadState;
 import config.TestDataConfig;
 import org.testng.Assert;
+import utils.browserControls.BrowserControls;
 import utils.elements.Elements;
+import utils.enums.Actions;
+import utils.waits.WaitUtils;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 
 public class TableUtils {
-    Page page;
-    TestDataConfig testDataConfig;
-    Elements elements;
+    private final Page page;
+    private final TestDataConfig testDataConfig;
+    private final Elements elements;
+    private final WaitUtils waitUtils;
+    private final BrowserControls browserControls;
 
     public TableUtils(Page page) {
         this.page = page;
         testDataConfig = new TestDataConfig();
         elements = new Elements(page);
+        waitUtils = new WaitUtils(page);
+        browserControls = new BrowserControls(page);
     }
 
     public void verifyTableValues(String tableId, List<List<String>> expectedData) {
@@ -108,10 +117,227 @@ public class TableUtils {
         List<String> sortingColumnNames = testDataConfig.getMultipleStringParameters(params, "Sorting_Title");
         sortingColumnNames.forEach(column -> {
             String xpath = String.format("//*[@id='%s']//th[contains(.,'%s')]//span", tableID, column);
-            boolean visible = elements.button().isVisible(xpath);
+            boolean visible = elements.button().isButtonVisible(xpath);
             Assert.assertTrue(visible, "Sorting icon not visible for column: " + column);
         });
     }
 
+    /**
+     * This method is finding dynamically the sequence of the column in a table
+     */
+    private int getPTableColumnSequence(String tableId, String columnName) {
+        Locator table = page.locator(tableId);
+        Locator headers = table.locator("thead th");
 
+        int count = headers.count();
+        for (int i = 0; i < count; i++) {
+            String headerText = headers.nth(i).textContent().trim();
+            if (headerText.equals(columnName)) {
+                return i; // Returns 0-based index
+            }
+        }
+
+        throw new NoSuchElementException("Column '" + columnName + "' not found in table");
+    }
+
+    /**
+     * Verify that all the registries have the specified Actions available
+     *
+     * @param tableID            The table id
+     * @param expectedVisibility Whether the actions should be visible or not
+     * @param actions            The actions to verify (varargs)
+     */
+    public void verifyAvailableActionsOnTable(String tableID, boolean expectedVisibility, Actions... actions) {
+        int actionsColumn = getPTableColumnSequence(tableID, "Actions");
+        int cssColumnIndex = actionsColumn + 1;
+
+        page.locator("eui-dropdown + div.eui-table-paginator__page-range").waitFor();
+        String totalRecords = page.locator("eui-dropdown + div.eui-table-paginator__page-range").textContent().trim();
+        totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
+
+        int tableSize = 0;
+        do {
+            tableSize += getTableRowCount(tableID);
+            int currentRow = 1;
+            do {
+                for (Actions action : actions) {
+                    String actionIdentifier = action.getIdentifier();
+
+                    String cssSelector = String.format(
+                            "table#%s tbody tr:nth-child(%d) td:nth-child(%d) button[aria-label*='%s' i], " +
+                                    "table#%s tbody tr:nth-child(%d) td:nth-child(%d) button[title*='%s' i]",
+                            tableID, currentRow, cssColumnIndex, actionIdentifier,
+                            tableID, currentRow, cssColumnIndex, actionIdentifier
+                    );
+
+                    Locator actionButton = page.locator(cssSelector);
+                    boolean visibility = actionButton.count() > 0 && actionButton.isVisible();
+
+                    Assert.assertEquals(visibility, expectedVisibility,
+                            "Row " + currentRow + ": The " + action.name() + " Action should " + (expectedVisibility ? "be" : "not be") + " available.");
+                }
+                currentRow++;
+            }
+            while (currentRow <= getTableRowCount(tableID));
+
+            if (isGoToNextPageButtonEnabled(tableID))
+                goToNextPage(tableID);
+        } while (tableSize < Integer.parseInt(totalRecords));
+    }
+
+    public Boolean isGoToFirstPageButtonEnabled(String tableID) {
+        String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to first page' i])", tableID);
+        return page.locator(cssSelector).isEnabled();
+    }
+
+    public Boolean isGoToPreviousPageButtonEnabled(String tableID) {
+        String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to previous page' i])", tableID);
+        return page.locator(cssSelector).isEnabled();
+    }
+
+    public Boolean isGoToNextPageButtonEnabled(String tableID) {
+        String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to next page' i])", tableID);
+        return page.locator(cssSelector).isEnabled();
+    }
+
+    public Boolean isGoToLastPageButtonEnabled(String tableID) {
+        String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to last page' i])", tableID);
+        return page.locator(cssSelector).isEnabled();
+    }
+
+    public void goToNextPage(String tableID) {
+        if (isGoToNextPageButtonEnabled(tableID)) {
+            String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to next page' i])", tableID);
+            page.locator(cssSelector).click();
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+        } else {
+            System.out.println("ERROR: Next page button is NOT enabled.");
+        }
+    }
+
+    public void goToLastPage(String tableID) {
+        if (isGoToLastPageButtonEnabled(tableID)) {
+            String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to last page' i])", tableID);
+            page.locator(cssSelector).click();
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+        } else {
+            System.out.println("ERROR: Last page button is NOT enabled.");
+        }
+    }
+
+    public void goToPreviousPage(String tableID) {
+        if (isGoToPreviousPageButtonEnabled(tableID)) {
+            String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to previous page' i])", tableID);
+            page.locator(cssSelector).click();
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+        } else {
+            System.out.println("ERROR: Previous page button is NOT enabled.");
+        }
+    }
+
+    public void goToFirstPage(String tableID) {
+        if (isGoToFirstPageButtonEnabled(tableID)) {
+            String cssSelector = String.format("table#%s ~ eui-table-paginator button:has(span[aria-label*='Go to first page' i])", tableID);
+            page.locator(cssSelector).click();
+            page.waitForLoadState(LoadState.NETWORKIDLE);
+        } else {
+            System.out.println("ERROR: First page button is NOT enabled.");
+        }
+    }
+
+    /**
+     * Verifies that the user can move through the table by clicking the pagination buttons
+     */
+    public void verifyFunctionalityOfPaginationButtons(String tableID) {
+        waitUtils.waitForVisible(tableID);
+        goToFirstPage(tableID);
+        goToNextPage(tableID);
+        goToPreviousPage(tableID);
+        goToLastPage(tableID);
+    }
+
+    private void verifyLimitationOfTableRows(int expectedRows, String tableID) {
+        waitUtils.waitForVisible(tableID, 5000);
+        int actualRows = getTableRowCount(tableID);
+        Assert.assertTrue(expectedRows < actualRows,
+                "The table rows exceed the limitation" + "of maximum displayed results. " +
+                        "The results should be equals or less than " + actualRows + " but was "
+                        + expectedRows);
+    }
+
+    /**
+     * Verifies the pagination and limitation of displayed results
+     *
+     * @param tableID    The element id of table
+     * @param limitation The number of pagination
+     */
+    public void verifyPaginationAndLimitation(String tableID, int limitation) {
+        Locator limitationDropdown = page.locator(".//*[@id='" + tableID + "']//following::eui-dropdown");
+        browserControls.scrollElementIntoView(limitationDropdown);
+        limitationDropdown.click();
+
+        waitUtils.waitForVisible("//following::button[@role='listitem']/div[text()='" + limitation + "']");
+        limitationDropdown.locator("//following::button[@role='listitem']/div[text()='" + limitation + "']").click();
+        String totalRecords = elements.input().getText("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]");
+
+        totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
+        int intTotalRecords = Integer.parseInt(totalRecords);
+        if (intTotalRecords < 10) {
+            totalRecords = totalRecords.substring(totalRecords.lastIndexOf("of ") + 1).trim();
+            intTotalRecords = Integer.parseInt(totalRecords);
+        }
+        int numOfRows = 0;
+        int rest;
+        do {
+
+            int actualNumOfRows = getTableRowCount(tableID);
+            rest = intTotalRecords - actualNumOfRows - numOfRows;
+
+            if (rest != 0)
+                Assert.assertEquals(actualNumOfRows, limitation, "The table rows exceed the limitation " +
+                        "of maximum displayed results. The results should be equals or less than " + limitation +
+                        " but was " + actualNumOfRows);
+            else
+                verifyLimitationOfTableRows(limitation, tableID);
+            numOfRows = numOfRows + actualNumOfRows;
+
+            if (isGoToNextPageButtonEnabled(tableID))
+                goToNextPage(tableID);
+        }
+        while (rest != 0);
+        goToFirstPage(tableID);
+    }
+
+    /**
+     * Verifies the availability of pagination buttons
+     */
+    public void verifyAvailabilityOfPaginationButtons(String tableID) {
+        goToFirstPage(tableID);
+
+        String firstPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to first page'])", "disabled");
+        Assert.assertTrue(Boolean.parseBoolean(firstPageDisabled));
+
+        String previousPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to previous page'])", "disabled");
+        Assert.assertTrue(Boolean.parseBoolean(previousPageDisabled));
+
+        String nextPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to next page'])", "disabled");
+        Assert.assertFalse(Boolean.parseBoolean(nextPageDisabled));
+
+        String lastPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to last page'])", "disabled");
+        Assert.assertFalse(Boolean.parseBoolean(lastPageDisabled));
+
+        goToLastPage(tableID);
+
+        firstPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to first page'])", "disabled");
+        Assert.assertFalse(Boolean.parseBoolean(firstPageDisabled));
+
+        previousPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to previous page'])", "disabled");
+        Assert.assertFalse(Boolean.parseBoolean(previousPageDisabled));
+
+        nextPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to next page'])", "disabled");
+        Assert.assertTrue(Boolean.parseBoolean(nextPageDisabled));
+
+        lastPageDisabled = page.getAttribute("#" + tableID + " ~ eui-table-paginator button:has(span[aria-label*='Go to last page'])", "disabled");
+        Assert.assertTrue(Boolean.parseBoolean(lastPageDisabled));
+    }
 }

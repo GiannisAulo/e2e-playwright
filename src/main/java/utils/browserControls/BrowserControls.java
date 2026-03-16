@@ -1,5 +1,6 @@
 package utils.browserControls;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
 
@@ -59,6 +60,10 @@ public final class BrowserControls {
      */
     public void scrollElementIntoView(String selector) {
         page.locator(selector).scrollIntoViewIfNeeded();
+    }
+
+    public void scrollElementIntoView(Locator selector) {
+        selector.scrollIntoViewIfNeeded();
     }
 
     /**
