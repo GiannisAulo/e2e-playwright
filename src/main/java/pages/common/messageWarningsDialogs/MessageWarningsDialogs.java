@@ -25,14 +25,6 @@ public class MessageWarningsDialogs {
     public static final String CD_021 = "Are you sure you want to invalidate this data?";
     public static final String CD_022 = "Are you sure you want to mark all notifications as read?";
     public static final String CD_023 = "Are you sure you want to undo this import? This action cannot be recovered.";
-    public static final String CD_024 = "Do you expect to make modifications to the CBAM report?";
-    public static final String CD_025 = "Are you sure you want to request delay?";
-    public static final String CD_026 = "Are you sure you want to save the changes in this good?";
-    public static final String CD_027 = "Are you sure you want to submit the corrected report?";
-    public static final String CD_028 = "Are you sure you want to duplicate report?";
-    public static final String CD_030 = "Are you sure you want to duplicate this good?";
-    public static final String CD_031 = "You have unsaved changes! Are you sure you want to discard them?";
-    public static final String CD_032 = "Are you sure you want to delete this emission?";
 
     //-----------------------------------------------------------------------------------------------------------------------
     //RM
@@ -50,14 +42,8 @@ public class MessageWarningsDialogs {
     public static final String RM_012 = "Good saved successfully";
     public static final String RM_013 = "Are you sure you want to submit the corrected report?";
     public static final String RM_014 = "Success";
-    public static final String RM_015 = "Error message: Delayed CBAM report submission is only allowed during the modification period as set in Commission implementing regulation (EU) 2023/1773 of 17 August 2023";
-    public static final String RM_016 = "Successfully Updated/Created";
-    public static final String RM_017 = "Saved successfully.";
-    public static final String RM_018 = "Request for Report Delayed Submission was successful";
-    public static final String RM_019 = "The Export Report file generation has started. Once the file generation is completed, the file will be automatically downloaded in your Downloads folder. Please do not close the web browser window until the Export Report file is generated and downloaded!";
-    public static final String RM_020 = "Export Report file downloaded successfully";
     //-----------------------------------------------------------------------------------------------------------------------
-    public static final String WM_001 = "The specific direct embedded emissions are higher than 20 t CO2/unit and what is usually expected for CBAM goods. Please carefully check the correctness of the value.";
+    public static final String WM_001 = "Please carefully check the correctness of the value.";
     public static final String WM_002 = "Please submit your report amendment to link the saved good(s) with your report";
     public static final String WM_003 = "The checkbox 'Declarant acts as an importer' or 'Importer' are not valid when the header role is 'Importer for all Goods'";
     public static final String WM_004 = "The checkbox 'Declarant acts as an Indirect Customs Representative' or 'Indirect Customs Representative' are not valid when the header role is 'Indirect Customs Representative for all Goods'";

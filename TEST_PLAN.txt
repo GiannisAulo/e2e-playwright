@@ -1,0 +1,371 @@
+================================================================================
+  AUTOMATION PRACTICE PORTAL — MANUAL TEST PLAN
+  Target: src/main/resources/test-page.html
+  Date:   2026-05-02
+================================================================================
+
+CREDENTIALS REFERENCE
+───────────────────────────────────────────────────────────────────────────────
+  Trader – Declarant : trader.declarant@portal.eu / TraderDecl2024
+  Trader – Read-Only : trader.readonly@portal.eu  / TraderRead2024
+  NCA    – Admin     : nca.admin@portal.eu         / NcaAdmin2024
+  NCA    – Reviewer  : nca.reviewer@portal.eu      / NcaReview2024
+
+
+================================================================================
+  SECTION 1 — PORTAL SELECTOR
+================================================================================
+
+TEST 01 — Portal selector is shown on page load
+────────────────────────────────────────────────
+  Steps:
+    1. Open test-page.html in a browser.
+  Expected:
+    - The portal selector screen is displayed with two cards:
+      "Trader Portal" and "NCA Portal".
+    - No dashboard or login form is visible.
+
+TEST 02 — Enter Trader Portal from selector
+───────────────────────────────────────────
+  Steps:
+    1. Open test-page.html.
+    2. Click "Enter Trader Portal".
+  Expected:
+    - The Trader portal section appears.
+    - The Trader login form is visible.
+    - The portal selector is hidden.
+
+TEST 03 — Enter NCA Portal from selector
+─────────────────────────────────────────
+  Steps:
+    1. Open test-page.html.
+    2. Click "Enter NCA Portal".
+  Expected:
+    - The NCA portal section appears.
+    - The NCA login form is visible.
+    - The portal selector is hidden.
+
+TEST 04 — Back button from Trader portal returns to selector
+─────────────────────────────────────────────────────────────
+  Steps:
+    1. Open test-page.html.
+    2. Click "Enter Trader Portal".
+    3. Click "← Back".
+  Expected:
+    - The portal selector is displayed again.
+    - The Trader portal section is hidden.
+
+TEST 05 — Back button from NCA portal returns to selector
+──────────────────────────────────────────────────────────
+  Steps:
+    1. Open test-page.html.
+    2. Click "Enter NCA Portal".
+    3. Click "← Back".
+  Expected:
+    - The portal selector is displayed again.
+    - The NCA portal section is hidden.
+
+
+================================================================================
+  SECTION 2 — TRADER PORTAL LOGIN
+================================================================================
+
+TEST 06 — Trader login with valid Declarant credentials
+────────────────────────────────────────────────────────
+  Steps:
+    1. Navigate to Trader Portal.
+    2. Enter email: trader.declarant@portal.eu
+    3. Enter password: TraderDecl2024
+    4. Click "Login".
+  Expected:
+    - Dashboard appears showing tabs: Declarations, Installations, Submit Report.
+    - User info in header shows "John Trader" and role "Declarant".
+    - "+ New Declaration" button is visible in the Declarations tab.
+    - Logout button is visible; Back button is hidden.
+
+TEST 07 — Trader login with valid Read-Only credentials
+────────────────────────────────────────────────────────
+  Steps:
+    1. Navigate to Trader Portal.
+    2. Enter email: trader.readonly@portal.eu
+    3. Enter password: TraderRead2024
+    4. Click "Login".
+  Expected:
+    - Dashboard appears.
+    - User info shows "Jane ReadOnly" and role "ReadOnly".
+    - "+ New Declaration" button is NOT visible.
+
+TEST 08 — Trader login with invalid credentials
+────────────────────────────────────────────────
+  Steps:
+    1. Navigate to Trader Portal.
+    2. Enter email: wrong@email.com
+    3. Enter password: wrongpass
+    4. Click "Login".
+  Expected:
+    - Error message: "Incorrect email or password."
+    - Login form remains visible; dashboard does not appear.
+
+TEST 09 — Trader login with empty fields
+─────────────────────────────────────────
+  Steps:
+    1. Navigate to Trader Portal.
+    2. Leave email and password blank.
+    3. Click "Login".
+  Expected:
+    - Error message: "Email and password are required."
+
+TEST 10 — Trader login with invalid email format
+─────────────────────────────────────────────────
+  Steps:
+    1. Navigate to Trader Portal.
+    2. Enter email: notanemail
+    3. Enter password: anything
+    4. Click "Login".
+  Expected:
+    - Error message: "Please enter a valid email address."
+
+
+================================================================================
+  SECTION 3 — NCA PORTAL LOGIN
+================================================================================
+
+TEST 11 — NCA login with valid Admin credentials
+──────────────────────────────────────────────────
+  Steps:
+    1. Navigate to NCA Portal.
+    2. Enter email: nca.admin@portal.eu
+    3. Enter password: NcaAdmin2024
+    4. Click "Login".
+  Expected:
+    - NCA dashboard appears with tabs: Review Queue, Operators, Audit Log.
+    - Header shows "Admin NCA" and role "NCA Admin".
+    - Approve/Reject buttons are enabled in Review Queue rows.
+
+TEST 12 — NCA login with Reviewer credentials
+──────────────────────────────────────────────
+  Steps:
+    1. Navigate to NCA Portal.
+    2. Enter email: nca.reviewer@portal.eu
+    3. Enter password: NcaReview2024
+    4. Click "Login".
+  Expected:
+    - NCA dashboard appears.
+    - Header shows "Maria Reviewer" and role "NCA Reviewer".
+
+TEST 13 — Trader credentials rejected on NCA portal
+─────────────────────────────────────────────────────
+  Steps:
+    1. Navigate to NCA Portal.
+    2. Enter email: trader.declarant@portal.eu
+    3. Enter password: TraderDecl2024
+    4. Click "Login".
+  Expected:
+    - Error message: "Incorrect email or password."
+    - NCA dashboard is NOT shown.
+
+
+================================================================================
+  SECTION 4 — DECLARATIONS TABLE (Trader Declarant)
+================================================================================
+
+Precondition: Logged in as trader.declarant@portal.eu / TraderDecl2024.
+              Declarations tab is active.
+
+TEST 14 — Declarations table is populated on login
+────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant.
+    2. Click the "Declarations" tab.
+  Expected:
+    - Table shows at least one row of declaration data.
+    - Columns: Declaration ID, Good (CN Code), Quantity, Emissions, Quarter, Status, Actions.
+
+TEST 15 — Global filter narrows rows
+──────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Type "Steel" in the global search box.
+  Expected:
+    - Only rows whose text contains "Steel" are shown.
+    - All visible rows contain the word "Steel".
+
+TEST 16 — Column filter on Status narrows rows
+───────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Type "Draft" in the Status column filter.
+  Expected:
+    - Only rows with status "Draft" are shown.
+    - Row count is at least 1.
+
+TEST 17 — Column header click sorts rows ascending/descending
+──────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Click the "Declaration ID" column header once.
+  Expected:
+    - Rows are sorted ascending by Declaration ID (DECL-2024-001, DECL-2024-002, ...).
+    3. Click the same header again.
+  Expected:
+    - Rows are sorted descending (DECL-2024-012, DECL-2024-011, ...).
+
+TEST 18 — Create new Draft declaration
+────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Note the current row count.
+    3. Click "+ New Declaration".
+    4. In the modal, fill in Quantity: 120, Embedded Emissions: 180.
+    5. Click "Save".
+  Expected:
+    - Modal closes.
+    - Toast success notification appears.
+    - Row count increases by 1.
+    - New row has status "Draft".
+
+TEST 19 — Modal validation rejects empty required fields
+──────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Click "+ New Declaration".
+    3. Leave Quantity and Emissions empty.
+    4. Click "Save".
+  Expected:
+    - An inline error message appears inside the modal.
+    - Modal remains open; no new row is added to the table.
+
+TEST 20 — Submit a Draft declaration (with confirmation)
+──────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Filter Status by "Draft".
+    3. Click the "Submit" button on the first Draft row.
+    4. Verify the confirmation dialog appears with title containing "Submit".
+    5. Click "Confirm".
+  Expected:
+    - Confirmation dialog closes.
+    - Toast success notification appears.
+    - The row's status changes from "Draft" to "Submitted".
+
+BONUS TEST 21 — Cancel Submit confirmation keeps declaration as Draft
+──────────────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, filter by "Draft".
+    2. Click "Submit" on first row — confirmation dialog appears.
+    3. Click "Cancel".
+  Expected:
+    - Confirmation dialog closes.
+    - Row count of Draft declarations is unchanged.
+    - Declaration status remains "Draft".
+
+BONUS TEST 22 — Delete a Draft declaration (with danger confirmation)
+──────────────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, filter by "Draft".
+    2. Note current Draft row count.
+    3. Click "Delete" on the first row.
+    4. Verify confirmation dialog appears with a red "Confirm" button.
+    5. Click "Confirm".
+  Expected:
+    - Row is removed from the table.
+    - Draft row count decreases by 1.
+    - Toast notification confirms deletion.
+
+BONUS TEST 23 — Edit and Delete buttons disabled for non-Draft rows
+────────────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, filter by "Submitted".
+    2. Inspect the Edit and Delete buttons on any Submitted row.
+  Expected:
+    - Buttons are present but visually disabled (greyed out).
+    - Clicking them has no effect.
+
+BONUS TEST 24 — Pagination controls exist and navigate rows
+────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as Declarant, open Declarations tab.
+    2. Check for: First Page, Previous Page, Next Page, Last Page buttons.
+    3. Change "Rows per page" to 5.
+  Expected:
+    - All four pagination buttons are visible.
+    - Table shows 5 rows per page.
+    - Page info label updates (e.g. "1–5 of 12").
+    4. Click "Next Page".
+  Expected:
+    - Table shows the next set of rows.
+
+
+================================================================================
+  SECTION 5 — PORTAL SWITCHING
+================================================================================
+
+TEST 25 — Trader switches to NCA portal (new browser session)
+──────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in to Trader portal as Declarant.
+    2. Click "Switch to NCA Portal" in the header.
+  Expected:
+    - Browser session is reset (simulated by application).
+    - NCA portal login screen appears.
+    - Trader dashboard is no longer visible.
+    - No previously logged-in Trader state is present.
+
+TEST 26 — NCA user switches to Trader portal (new browser session)
+───────────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in to NCA portal as Admin.
+    2. Click "Switch to Trader Portal".
+  Expected:
+    - Trader portal login screen appears.
+    - NCA dashboard is no longer visible.
+
+TEST 27 — Trader logout shows confirmation dialog
+──────────────────────────────────────────────────
+  Steps:
+    1. Log in to Trader portal.
+    2. Click "Logout" in the header.
+  Expected:
+    - Confirmation dialog appears with title "Logout".
+    3. Click "Cancel".
+  Expected:
+    - Dialog closes; trader dashboard is still visible.
+
+TEST 28 — Confirmed logout returns to login screen
+───────────────────────────────────────────────────
+  Steps:
+    1. Log in to Trader portal.
+    2. Click "Logout".
+    3. In the confirmation dialog, click "Confirm".
+  Expected:
+    - Trader login screen appears.
+    - Dashboard is hidden.
+    - User info in header is cleared.
+
+
+================================================================================
+  SECTION 6 — NCA REVIEW QUEUE
+================================================================================
+
+TEST 29 — NCA Admin sees submitted declarations in Review Queue
+────────────────────────────────────────────────────────────────
+  Steps:
+    1. Log in as nca.admin@portal.eu / NcaAdmin2024.
+    2. Click the "Review Queue" tab.
+  Expected:
+    - Table contains declarations with status "Submitted" or "Under Review".
+    - Approve and Reject buttons are available per row.
+
+TEST 30 — NCA Admin approves a declaration
+────────────────────────────────────────────
+  Steps:
+    1. Log in as NCA Admin, open Review Queue.
+    2. Click "Approve" on the first row.
+  Expected:
+    - Confirmation dialog may appear (if configured).
+    - Row status changes to "Approved".
+    - Toast success notification is shown.
+
+================================================================================
+  END OF TEST PLAN
+================================================================================

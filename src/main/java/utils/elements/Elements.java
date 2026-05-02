@@ -69,8 +69,16 @@ public class Elements {
         return page.locator(selector).count() > 0;
     }
 
+    public boolean isElementVisible(String selector) {
+        return page.locator(selector).isVisible();
+    }
+
     public String getAttribute(String selector, String attributeName) {
         return page.locator(selector).getAttribute(attributeName);
+    }
+
+    public String getText(String selector) {
+        return page.locator(selector).textContent().trim();
     }
 
     public void hover(String selector) {

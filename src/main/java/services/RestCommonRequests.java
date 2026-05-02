@@ -6,8 +6,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import utils.factory.StaticContextFactory;
 import utils.Utils;
+import utils.factory.StaticContextFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +46,7 @@ public class RestCommonRequests {
         RestAssured.baseURI = StaticContextFactory.api;
         try {
             response = RestAssured.given()
-                    .header("Referer", StaticContextDataFactory.referer)
+                    .header("Referer", StaticContextFactory.referer)
                     .when()
                     .get(endpoint)
                     .then().extract();
@@ -85,7 +85,7 @@ public class RestCommonRequests {
      * @return the response
      */
     public ExtractableResponse getResponseByFilter(Properties params, String filter, String endpoint, String referer) {
-        RestAssured.baseURI = StaticContextDataFactory.api;
+        RestAssured.baseURI = StaticContextFactory.api;
         try {
             response = RestAssured.given()
                     .queryParam("pageNumber", params.getProperty("PageNumber"))
@@ -102,26 +102,14 @@ public class RestCommonRequests {
     }
 
     public <T> ExtractableResponse post(String endpoint, T requestBody, String referer) {
-        RestAssured.baseURI = StaticContextDataFactory.api;
+        RestAssured.baseURI = StaticContextFactory.api;
         try {
-            if (envDataConfig.getUUMDSMode() || envDataConfig.getCCN2Mode()) {
-                response = RestAssured.given()
-                        .header("Referer", StaticContextDataFactory.referer)
-                        .header("X-XSRF-TOKEN", StaticContextDataFactory.x_xsrf_Token)
-                        .contentType(ContentType.JSON)
-                        .body(requestBody)
-                        .when()
-                        .post(endpoint)
-                        .then().log().status().extract();
-            } else {
-                response = RestAssured.given()
-                        .contentType(ContentType.JSON)
-                        .body(requestBody)
-                        .when()
-                        .post(endpoint)
-                        .then().log().status().extract();
-            }
-
+            response = RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(requestBody)
+                    .when()
+                    .post(endpoint)
+                    .then().log().status().extract();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -129,24 +117,14 @@ public class RestCommonRequests {
     }
 
     public <T> ExtractableResponse update(String endpoint, T requestBody, String referer) {
-        RestAssured.baseURI = StaticContextDataFactory.api;
+        RestAssured.baseURI = StaticContextFactory.api;
         try {
-            if (envDataConfig.getUUMDSMode() || envDataConfig.getCCN2Mode()) {
-                response = RestAssured.given()
-                        .header("X-XSRF-TOKEN", StaticContextDataFactory.x_xsrf_Token)
-                        .contentType(ContentType.JSON)
-                        .body(requestBody)
-                        .when()
-                        .put(endpoint)
-                        .then().extract();
-            } else {
-                response = RestAssured.given()
-                        .contentType(ContentType.JSON)
-                        .body(requestBody)
-                        .when()
-                        .put(endpoint)
-                        .then().extract();
-            }
+            response = RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .body(requestBody)
+                    .when()
+                    .put(endpoint)
+                    .then().extract();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -154,23 +132,14 @@ public class RestCommonRequests {
     }
 
     public ExtractableResponse delete(String endpoint, String whatToDelete, String referer) {
-        RestAssured.baseURI = StaticContextDataFactory.api;
+        RestAssured.baseURI = StaticContextFactory.api;
         endpoint = endpoint + whatToDelete;
         try {
-            if (envDataConfig.getUUMDSMode() || envDataConfig.getCCN2Mode()) {
-                response = RestAssured.given()
-                        .header("X-XSRF-TOKEN", StaticContextDataFactory.x_xsrf_Token)
-                        .contentType(ContentType.JSON)
-                        .when()
-                        .delete(endpoint)
-                        .then().extract();
-            } else {
-                response = RestAssured.given()
-                        .contentType(ContentType.JSON)
-                        .when()
-                        .delete(endpoint)
-                        .then().extract();
-            }
+            response = RestAssured.given()
+                    .contentType(ContentType.JSON)
+                    .when()
+                    .delete(endpoint)
+                    .then().extract();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -198,19 +167,5 @@ public class RestCommonRequests {
 
         }
         return extractableResponse;
-    }
-
-    public ExtractableResponse modifyRequestBodyAndImporterAndPostEachObject(JSONArray jsonArray, String endpoint, String referer) {
-        ExtractableResponse extractableResponse = null;
-        int count = jsonArray.length(); // get totalCount of all jsonObjects
-        for (int i = 0; i < count; i++) {   // iterate through jsonArray
-            JSONObject jsonObject = jsonArray.getJSONObject(i);  // get jsonObject @ i position
-            if (jsonObject.getJSONObject("economicOperatorsCriteria").has("importerId")) {
-                jsonObject.getJSONObject("economicOperatorsCriteria").put("importerId", envDataConfig.getImporterIdentifier("ImporterIdentifier"));
-            }
-            extractableResponse = post(endpoint, jsonObject.toString(), referer);
-        }
-        return extractableResponse;
-
     }
 }

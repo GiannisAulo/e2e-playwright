@@ -169,19 +169,16 @@ public class WaitUtils {
      */
     public void waitForElementToBeClickable(String selector, int timeout) {
         Locator locator = page.locator(selector);
-        long startTime = System.currentTimeMillis();
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            try {
-                if (locator.isVisible() && locator.isEnabled()) {
-                    return;
-                }
-            } catch (Exception e) {
-                // Element might not be in DOM yet, continue waiting
-            }
-            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        try {
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.VISIBLE));
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.ATTACHED));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Element not clickable after " + timeout + " ms: " + selector);
         }
-        throw new RuntimeException("Element not clickable after " + timeout + " ms: " + selector);
     }
 
     /**
@@ -192,10 +189,9 @@ public class WaitUtils {
     }
 
     /**
-     * Wait for dropdown element (with small delay + clickable check)
+     * Wait for dropdown element to be clickable
      */
     public void waitForDropdownElement(String selector) {
-        sleep(300, TimeUnit.MILLISECONDS);
         waitForElementToBeClickable(selector);
     }
 
@@ -204,15 +200,13 @@ public class WaitUtils {
      */
     public void waitForEnabled(String selector, int timeout) {
         Locator locator = page.locator(selector);
-        long startTime = System.currentTimeMillis();
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            if (locator.isEnabled()) {
-                return;
-            }
-            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        try {
+            locator.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(timeout)
+                    .setState(WaitForSelectorState.VISIBLE));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Element not enabled after " + timeout + " ms: " + selector);
         }
-        throw new RuntimeException("Element not enabled after " + timeout + " ms: " + selector);
     }
 
     /**
@@ -228,17 +222,14 @@ public class WaitUtils {
      * Wait for text to be present in element
      */
     public void waitForText(String selector, String expectedText, int timeout) {
-        Locator locator = page.locator(selector);
-        long startTime = System.currentTimeMillis();
-
-        while (System.currentTimeMillis() - startTime < timeout) {
-            String actualText = locator.textContent();
-            if (actualText != null && actualText.contains(expectedText)) {
-                return;
-            }
-            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        try {
+            page.locator(selector).filter(new Locator.FilterOptions().setHasText(expectedText))
+                    .waitFor(new Locator.WaitForOptions()
+                            .setTimeout(timeout)
+                            .setState(WaitForSelectorState.VISIBLE));
+        } catch (TimeoutError e) {
+            throw new RuntimeException("Text '" + expectedText + "' not found in element after " + timeout + " ms: " + selector);
         }
-        throw new RuntimeException("Text '" + expectedText + "' not found in element after " + timeout + " ms: " + selector);
     }
 
     /**
@@ -254,19 +245,16 @@ public class WaitUtils {
      * Wait for element count to match expected value
      */
     public void waitForElementCount(String selector, int expectedCount, int timeout) {
-        long startTime = System.currentTimeMillis();
-
-        while (System.currentTimeMillis() - startTime < timeout) {
+        try {
+            page.waitForFunction(
+                    "([sel, count]) => document.querySelectorAll(sel).length === count",
+                    new Object[]{selector, expectedCount},
+                    new Page.WaitForFunctionOptions().setTimeout(timeout));
+        } catch (TimeoutError e) {
             int actualCount = page.locator(selector).count();
-            if (actualCount == expectedCount) {
-                return;
-            }
-            sleep((int) DEFAULT_POLL_INTERVAL, TimeUnit.MILLISECONDS);
+            throw new RuntimeException("Element count did not match. Expected: " + expectedCount +
+                    ", Actual: " + actualCount + " after " + timeout + " ms");
         }
-
-        int actualCount = page.locator(selector).count();
-        throw new RuntimeException("Element count did not match. Expected: " + expectedCount +
-                ", Actual: " + actualCount + " after " + timeout + " ms");
     }
 
     // ==================== Custom Condition Waits ====================

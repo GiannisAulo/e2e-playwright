@@ -1,14 +1,7 @@
 package config;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import org.testng.Assert;
-import org.testng.reporters.jq.Model;
 
 public class RecoursesConfig {
     public String getOutputDir() {
@@ -28,27 +21,24 @@ public class RecoursesConfig {
     }
 
     public String getEnvironmentProperties() {
-        if (System.getProperty("env.properties") == null) {
-            return getAbsolutePath() + getPomProperty("env.properties");
-        } else {
+        if (System.getProperty("env.properties") != null) {
             return getAbsolutePath() + System.getProperty("env.properties");
         }
+        return getAbsolutePath() + "env.properties";
     }
 
     public String getUserProperties() {
-        if (System.getProperty("env.properties") == null) {
-            return getAbsolutePath() + getPomProperty("env.properties");
-        } else {
+        if (System.getProperty("env.properties") != null) {
             return getAbsolutePath() + System.getProperty("env.properties");
         }
+        return getAbsolutePath() + "env.properties";
     }
 
     public String getTanzuUserProperties() {
-        if (System.getProperty("user_tanzu.properties") == null) {
-            return getAbsolutePath() + getPomProperty("user_tanzu.properties");
-        } else {
+        if (System.getProperty("user_tanzu.properties") != null) {
             return getAbsolutePath() + System.getProperty("user_tanzu.properties");
         }
+        return getAbsolutePath() + "user_tanzu.properties";
     }
 
     public String getTestResourcesPath() {
@@ -87,16 +77,5 @@ public class RecoursesConfig {
         if (!f.exists())
             filePathString = getAbsolutePath() + "/../../tools";
         return filePathString;
-    }
-
-    private String getPomProperty(String propertyName) {
-        Model model = null;
-        MavenXpp3Reader reader = new MavenXpp3Reader();
-        try {
-            model = reader.read(new FileReader(getAbsolutePath() + "/pom.xml"));
-        } catch (IOException | XmlPullParserException e) {
-            e.printStackTrace();
-        }
-        return model.getProperties().getProperty(propertyName);
     }
 }

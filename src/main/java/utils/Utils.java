@@ -2,6 +2,7 @@ package utils;
 
 import utils.factory.ContextDataFactory;
 import utils.factory.PageObjectFactory;
+import utils.factory.PlaywrightDriverFactory;
 import utils.factory.ServiceObjectFactory;
 
 import java.text.DateFormat;
@@ -20,8 +21,9 @@ public class Utils {
 
     public Utils() {
         contextFactory = new ContextDataFactory();
+        serviceObjectFactory = new ServiceObjectFactory();
+        pageObjectFactory = new PageObjectFactory(this, PlaywrightDriverFactory.getPage());
     }
-
 
     public PageObjectFactory ui() {
         return pageObjectFactory;

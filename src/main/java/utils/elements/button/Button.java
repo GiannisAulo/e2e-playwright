@@ -40,6 +40,7 @@ public class Button {
     }
 
     public boolean isButtonExpanded(String selector) {
-        return page.locator(selector).getAttribute("aria-label").equals("collapse");
+        String ariaLabel = page.locator(selector).getAttribute("aria-label");
+        return "collapse".equals(ariaLabel);
     }
 }

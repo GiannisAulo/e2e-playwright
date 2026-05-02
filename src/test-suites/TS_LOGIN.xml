@@ -3,7 +3,8 @@
 <suite name="Playwright E2E Suite">
     <test name="Basic Tests">
         <classes>
-            <class name="serviceSuites.TS_LOGIN.InvalidLogin"/>
+            <class name="UI.TS_LOGIN.TS_01_TC_01"/>
+            <class name="UI.TS_LOGIN.TS_01_TC_02"/>
         </classes>
     </test>
 </suite>

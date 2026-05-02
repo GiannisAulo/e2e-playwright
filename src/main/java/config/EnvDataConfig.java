@@ -121,14 +121,6 @@ public class EnvDataConfig {
         return getEnvProperties().getProperty("db.password");
     }
 
-    public String getAddress(String userRole) {
-        return getEnvProperties().getProperty(userRole + ".address");
-    }
-
-    public String getCity(String userRole) {
-        return getEnvProperties().getProperty(userRole + ".city");
-    }
-
     private Properties getUserProperties() {
         return getProperties(loadProperties(resourcesConfig.getUserProperties()));
     }
@@ -136,18 +128,6 @@ public class EnvDataConfig {
     private Properties getTanzuUserProperties() {
         return getProperties(loadProperties(resourcesConfig.getTanzuUserProperties()));
     }
-
-    public String getSchemaOperatorDB() { return getEnvProperties().getProperty("schema.operator.db"); }
-    public String getSchemaO3ciDMSDB() { return getEnvProperties().getProperty("schema.o3ciDMS.db"); }
-    public String getSchemaCOMDB() { return getEnvProperties().getProperty("schema.com.db"); }
-
-    public String getSchemaComDMSDB() {
-        return getEnvProperties().getProperty("schema.comDMS.db");
-    }
-    public String getSchemaRegBackDB() { return getEnvProperties().getProperty("schema.registryBackend.db");}
-    public String getSchemaRegDMSDB() { return getEnvProperties().getProperty("schema.registryDMS.db");}
-    public String getSchemaNCABackDB() { return getEnvProperties().getProperty("schema.nca.db"); }
-    public String getSchemaNcaDMSDB() { return getEnvProperties().getProperty("schema.ncaDMS.db"); }
 
 
     private static Properties loadProperties(String testDataFile) {
@@ -183,7 +163,7 @@ public class EnvDataConfig {
         return url;
     }
 
-    private Properties getEnvProperties() {
+    public Properties getEnvProperties() {
         return getProperties(loadProperties(resourcesConfig.getEnvironmentProperties()));
     }
 }

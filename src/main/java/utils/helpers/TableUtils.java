@@ -76,11 +76,11 @@ public class TableUtils {
     }
 
     public int getTableRowCount(String tableId) {
-        return page.locator(tableId + "tbody tr").count();
+        return page.locator(tableId + " tbody tr").count();
     }
 
     public Locator getTableRows(String tableId) {
-        return page.locator(tableId + "tbody tr");
+        return page.locator(tableId + " tbody tr");
     }
 
 
@@ -272,13 +272,13 @@ public class TableUtils {
      * @param limitation The number of pagination
      */
     public void verifyPaginationAndLimitation(String tableID, int limitation) {
-        Locator limitationDropdown = page.locator(".//*[@id='" + tableID + "']//following::eui-dropdown");
+        Locator limitationDropdown = page.locator("#" + tableID + " ~ eui-dropdown");
         browserControls.scrollElementIntoView(limitationDropdown);
         limitationDropdown.click();
 
         waitUtils.waitForVisible("//following::button[@role='listitem']/div[text()='" + limitation + "']");
         limitationDropdown.locator("//following::button[@role='listitem']/div[text()='" + limitation + "']").click();
-        String totalRecords = elements.input().getText("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]");
+        String totalRecords = elements.getText("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]");
 
         totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
         int intTotalRecords = Integer.parseInt(totalRecords);

@@ -55,6 +55,18 @@ public class PlaywrightDriverFactory {
         return context;
     }
 
+    /**
+     * Closes the current context and page, then opens a fresh context and page on the
+     * same browser instance. Simulates a new browser session without relaunching the browser.
+     */
+    public static void resetSession() {
+        if (page != null) { page.close(); page = null; }
+        if (context != null) { context.close(); context = null; }
+        if (browser == null) throw new IllegalStateException("Browser not initialized. Call init() first.");
+        context = browser.newContext();
+        page = context.newPage();
+    }
+
     public static void close() {
         if (page != null) page.close();
         if (context != null) context.close();

@@ -251,24 +251,6 @@ public class RestCommonValidations {
      * @return
      */
 
-    //This method checks whether the EORI value for a given actor is present or not
-    // in the response and verifies if its visibility matches the expected value (exists or not).
-    public RestCommonValidations verifyResponseContainsEORIValue(Actors actor, boolean exists) {
-        String text = envDataConfig.getEORI(actor.toString());
-        JsonPath js = new JsonPath(response.asString());
-        boolean found = false;
-        int listSize = js.getInt("data.size()");
-        for (int i = 0; i < listSize; i++) {
-            String eori = js.get("data[" + i + "].eori");
-            if (eori.equals(text)) {
-                found = true;
-                break;
-            }
-        }
-        Assert.assertEquals(found, exists, "Incorrect visibility for value : " + text);
-        return this;
-    }
-
     /**
      * Verifies contains text in response
      *

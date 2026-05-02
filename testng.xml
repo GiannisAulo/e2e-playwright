@@ -1,0 +1,31 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="CBAM E2E Suite" parallel="none" verbose="1">
+
+    <listeners>
+        <listener class-name="listeners.AllureTestListener"/>
+    </listeners>
+
+    <!-- TS_LOGIN — Login flows for both portals -->
+    <test name="TS_LOGIN">
+        <classes>
+            <class name="UI.TS_LOGIN.InvalidLogin"/>
+            <class name="UI.TS_LOGIN.TraderPortalLogin"/>
+            <class name="UI.TS_LOGIN.NCAPortalLogin"/>
+        </classes>
+    </test>
+
+    <!-- TS_PORTAL — Portal switching and access control -->
+    <test name="TS_PORTAL">
+        <classes>
+            <class name="UI.TS_PORTAL.PortalSwitchTest"/>
+        </classes>
+    </test>
+
+    <!-- TS_DECLARATIONS — Trader declarations CRUD and table -->
+    <test name="TS_DECLARATIONS">
+        <classes>
+            <class name="UI.TS_LOGIN.DeclarationsTableTest"/>
+        </classes>
+    </test>
+
+</suite>

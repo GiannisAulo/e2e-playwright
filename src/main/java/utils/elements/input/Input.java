@@ -9,7 +9,4 @@ public class Input {
         this.page = page;
     }
 
-    public String getText(String selector){
-        return  page.locator(selector).textContent().trim();
-    }
 }

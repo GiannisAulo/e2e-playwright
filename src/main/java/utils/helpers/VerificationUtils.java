@@ -14,15 +14,26 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class VerificationUtils {
+    private static final String TAB_NAME_ERROR = "TabNameError";
+    private static final String TOTAL_GOOD_ERRORS = "TotalGoodErrors";
+    private static final String TOTAL_EMISSION_ERRORS = "TotalEmissionErrors";
+    private static final String ERROR_FIELD = "ErrorField";
+    private static final String SCREEN_ERRORS = "ScreenErrors";
+    private static final String SPECIFIC_ERRORS = "SpecificErrors";
+    
+    private static final String NOTIFICATION_MESSAGE = "NotificationMessage";
+
     private final TestDataConfig testDataConfig = new TestDataConfig();
     private final Page page;
     private final Elements elements;
     private final WaitUtils waitUtils;
     private final TableUtils table;
+
     public VerificationUtils(Page page) {
         this.page = page;
         elements = new Elements(this.page);
         waitUtils = new WaitUtils(this.page);
+        table = new TableUtils(this.page);
     }
 
     public void verifyTooltipValue(String elementLocator, Properties params) {
@@ -73,90 +84,48 @@ public class VerificationUtils {
      * Verifies the availability of pagination buttons
      */
     public void verifyAvailabilityOfPaginationButtons(String tableID) {
-        goToFirstPage(tableID);
-        String firstPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to first page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertTrue(Boolean.parseBoolean(firstPageDisabled));
-        String previousPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to previous page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertTrue(Boolean.parseBoolean(previousPageDisabled));
-        String nextPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to next page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertFalse(Boolean.parseBoolean(nextPageDisabled));
-        String lastPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to last page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertFalse(Boolean.parseBoolean(lastPageDisabled));
-        table.goToLastPage(tableID);
-        firstPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to first page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertFalse(Boolean.parseBoolean(firstPageDisabled));
-        previousPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to previous page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertFalse(Boolean.parseBoolean(previousPageDisabled));
-        nextPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to next page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertTrue(Boolean.parseBoolean(nextPageDisabled));
-        lastPageDisabled = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(
-                        By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                                "span[contains(@aria-label,'Go to last page')]//ancestor::button"))
-                .getAttribute("disabled");
-        Assert.assertTrue(Boolean.parseBoolean(lastPageDisabled));
-
+        table.verifyAvailabilityOfPaginationButtons(tableID);
     }
 
     public void verifyPaginationExists(String tableID) {
         System.out.println("~ Verifying the first page button exists");
-        Assert.assertTrue(isElementPresent(By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                "span[contains(@aria-label,'Go to first page')]//ancestor::button")));
+        Assert.assertTrue(elements.isElementPresent("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
+                "span[contains(@aria-label,'Go to first page')]//ancestor::button"));
 
         System.out.println("~ Verifying the previous page button exists");
-        Assert.assertTrue(isElementPresent(By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                "span[contains(@aria-label,'Go to previous page')]//ancestor::button")));
+        Assert.assertTrue(elements.isElementPresent("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
+                "span[contains(@aria-label,'Go to previous page')]//ancestor::button"));
 
         System.out.println("~ Verifying the next page button exists");
-        Assert.assertTrue(isElementPresent(By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                "span[contains(@aria-label,'Go to next page')]//ancestor::button")));
+        Assert.assertTrue(elements.isElementPresent("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
+                "span[contains(@aria-label,'Go to next page')]//ancestor::button"));
 
         System.out.println("~ Verifying the last page button exists");
-        Assert.assertTrue(isElementPresent(By.xpath("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
-                "span[contains(@aria-label,'Go to last page')]//ancestor::button")));
+        Assert.assertTrue(elements.isElementPresent("//table[@id='" + tableID + "']//following::eui-table-paginator//" +
+                "span[contains(@aria-label,'Go to last page')]//ancestor::button"));
     }
 
     public void verifyTheAvailableLimitationOptionsOfTable(String tableID) {
-        List<String> expectedLimitationOptions = Stream.of("10", "20", "50", "75", "100").collect(Collectors.toList());
-        WebElement pDropdown = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver()
-                .findElement(By.xpath(".//*[@id='" + tableID + "']//following::eui-dropdown"));
-        List<String> actualLimitationOptions = element.primeNG().dropdown().getsValuesFromDropdown(pDropdown);
+        List<String> expectedLimitationOptions = List.of("10", "20", "50", "75", "100");
+        Locator dropdown = page.locator("#" + tableID + " ~ eui-dropdown");
+        dropdown.click();
+        List<String> actualLimitationOptions = page.locator(".eui-dropdown__item").allInnerTexts()
+                .stream().map(String::trim).toList();
+        page.keyboard().press("Escape");
         Assert.assertEquals(actualLimitationOptions, expectedLimitationOptions, "Incorrect available limitation options.");
     }
 
     public void verifyItemsPerPageControlExists() {
-        System.out.println("Verifying items per page exists");
-        Assert.assertTrue(isElementPresent(By.xpath("//div[contains(@class,'table-paginator__page-selector')]"))
-                , "Element is not presenet");
+        Assert.assertTrue(elements.isElementPresent("div.table-paginator__page-selector"), "Items per page control is not present");
     }
 
-    /*
-    Check that each column has the filter field
-     */
     public void verifyFiltersVisibilityForEachColumn(String tableID) {
-        int columnsNumber = table.getPTableColumnsCount(tableID);
-        for (int i = 1; i <= columnsNumber; i++) {
-            isButtonElementPresent(By.xpath("//table[@id='" + tableID + "']/thead/tr/th/input"));
+        Locator headers = page.locator("#" + tableID + " thead tr th");
+        int columnsNumber = headers.count();
+        for (int i = 0; i < columnsNumber; i++) {
+            Assert.assertTrue(
+                    headers.nth(i).locator("input").isVisible(),
+                    "Filter input not visible for column " + (i + 1));
         }
     }
 
@@ -167,13 +136,14 @@ public class VerificationUtils {
      */
     public void verifySuccessfullyMessage(boolean success, Properties params) {
         String expectedMessage = testDataConfig.getStringParameter(params, NOTIFICATION_MESSAGE);
-        WebElement uploadingResultElement = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver().findElement(By.xpath(" "));
-        wait.waitForElement(uploadingResultElement);
+        String uploadingResultLocator = "//div[contains(@class, 'eui-growl-item-message-detail')]"; 
+        waitUtils.waitForVisible(uploadingResultLocator);
 
+        String actualText = page.locator(uploadingResultLocator).innerText();
         if (success) {
-            Assert.assertEquals(uploadingResultElement.getText(), expectedMessage, "Incorrect uploading result.");
+            Assert.assertEquals(actualText, expectedMessage, "Incorrect uploading result.");
         } else {
-            Assert.assertNotEquals(uploadingResultElement.getText(), expectedMessage, "Incorrect uploading result.");
+            Assert.assertNotEquals(actualText, expectedMessage, "Incorrect uploading result.");
         }
     }
 
@@ -185,7 +155,7 @@ public class VerificationUtils {
     public void verifyInputErrorMessage(String errorMessage) {
         System.out.println("Verifying error message...");
         waitUtils.waitForVisible(CommonLocators.ERROR_FEEDBACK_MESSAGE);
-        Assert.assertEquals(elements.input().getText(CommonLocators.ERROR_FEEDBACK_MESSAGE), errorMessage);
+        Assert.assertEquals(elements.getText(CommonLocators.ERROR_FEEDBACK_MESSAGE), errorMessage);
     }
 
 
@@ -194,153 +164,107 @@ public class VerificationUtils {
     }
 
     private void verifyModalMessage(String expectedMessage) {
-        wait.waitForElement(element.getElement(By.xpath("//div[@role='dialog']")));
-        if (isElementPresent(By.xpath("//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]//p"))) {
-            String actualMessage = element.getElement(By.xpath("//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]//p")).getText();
+        waitUtils.waitForElement(page.locator("//div[@role='dialog']"));
+        if (elements.isElementPresent("//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]//p")) {
+            String actualMessage = page.locator("//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]//p").innerText();
             Assert.assertEquals(actualMessage, expectedMessage, "Incorrect displayed message.");
         } else {
-            String actualMessage = element.getElement(By.xpath("(//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]/div)[2]")).getText();
+            String actualMessage = page.locator("(//div[@role='dialog']//div[contains(@class,'eui-dialog__body')]/div)[2]").innerText();
             Assert.assertEquals(actualMessage, expectedMessage, "Incorrect displayed message.");
         }
     }
 
     public void verifyAlertMessageInPopUp(String expectedInfoMessage) {
-        wait.waitForElement(element.getElement(By.xpath("//div[@role='dialog']")));
-        String info = element.getElementText(GeneralElements.MODAL_ALERT);
+        waitUtils.waitForElement(page.locator("//div[@role='dialog']"));
+        String info = page.locator(CommonLocators.MODAL_ALERT).innerText();
         Assert.assertEquals(info, expectedInfoMessage, "Wrong Alert message !!!");
     }
 
     public void verifyWarningMessage(String expectedWarning) {
-        wait.waitForElement(element.getElement(GeneralElements.WARNING_ALERT));
-        String actualWarning = element.getElementText(GeneralElements.WARNING_ALERT);
+        waitUtils.waitForElement(page.locator(CommonLocators.WARNING_ALERT));
+        String actualWarning = page.locator(CommonLocators.WARNING_ALERT).innerText();
         Assert.assertEquals(actualWarning.trim(), expectedWarning.trim(), "Wrong Warning message !!!");
     }
 
     public void verifyWarningNotificationMessage(String expectedWarning) {
-        wait.waitForElement(element.getElement(GeneralElements.WARNING_NOTIFICATION));
-        String actualWarning = element.getElementText(GeneralElements.WARNING_NOTIFICATION);
+        waitUtils.waitForElement(page.locator(CommonLocators.WARNING_NOTIFICATION));
+        String actualWarning = page.locator(CommonLocators.WARNING_NOTIFICATION).innerText();
         Assert.assertEquals(actualWarning.trim(), expectedWarning.trim(), "Wrong Warning message !!!");
     }
 
     public boolean isNotificationSuccessMessageDisplayed(String message) {
-        boolean isDisplayed = false;
-        try {
-            List<WebElement> notifications = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver()
-                    .findElements(By.xpath("//div[@role='region']//div[contains(@class,'item-message')]/p"));
-            for (WebElement notification : notifications) {
-                String successMessage = notification.getText();
-                if (successMessage.equals(message)) {
-                    isDisplayed = true;
-                    break;
-                }
-            }
-            Assert.assertTrue(isDisplayed, "The message is not the expected.");
-        } catch (Exception e) {
-        }
+        List<String> notifications = page.locator("//div[@role='region']//div[contains(@class,'item-message')]/p").allInnerTexts();
+        boolean isDisplayed = notifications.stream().anyMatch(message::equals);
+        Assert.assertTrue(isDisplayed, "Notification message not found: '" + message + "' in: " + notifications);
         return isDisplayed;
     }
 
     public void assertNotificationMessages(Properties params) {
         List<String> notificationMessages = testDataConfig.getMultipleStringParameters(params, "notificationMessage");
         try {
-            List<String> notificationTexts = com.intrasoft.cbam.utils.Utils.webDriverFactory().getDriver()
-                    .findElements(By.xpath("//p[contains(@class, 'eui-growl-item-message-detail')]//ul/li"))
-                    .stream()
-                    .map(WebElement::getText)
-                    .collect(Collectors.toList());
+            List<String> notificationTexts = page.locator("//p[contains(@class, 'eui-growl-item-message-detail')]//ul/li")
+                    .allInnerTexts();
             for (String expectedMessage : notificationMessages) {
                 Assert.assertTrue(notificationTexts.contains(expectedMessage),
                         "Expected message not found: '" + expectedMessage + "' in notifications: " + notificationTexts);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             Assert.fail("An error occurred while verifying the notifications: " + e.getMessage());
         }
     }
 
     public void verifyTabValidationErrorNotDisplayed(Properties params) {
         String error = params.getProperty(TAB_NAME_ERROR);
-        Assert.assertFalse(isElementPresent(
-                        By.xpath(" (//div[contains(@class,'eui-tab-item__label')][text()='" + error + "']//following::generic-error-length)[1]")),
+        Assert.assertFalse(elements.isElementPresent(
+                        " (//div[contains(@class,'eui-tab-item__label')][text()='" + error + "']//following::generic-error-length)[1]"),
                 "No validation error");
     }
 
     public void verifyTabValidationErrorDisplayed(Properties params) {
         String error = params.getProperty(TAB_NAME_ERROR);
-        Assert.assertTrue(isElementPresent(
-                        By.xpath(" (//div[contains(@class,'eui-tab-item__label')][text()='" + error + "']//following::generic-error-length)[1]")),
+        Assert.assertTrue(elements.isElementPresent(
+                        " (//div[contains(@class,'eui-tab-item__label')][text()='" + error + "']//following::generic-error-length)[1]"),
                 "No validation error");
     }
 
     public void verifyTotalGoodErrors(Properties params) {
         String errors = params.getProperty(TOTAL_GOOD_ERRORS);
-        Assert.assertTrue(isElementPresent(By.xpath("(//div//generic-error-length/eui-badge)[1]")), "No validation error");
-        Assert.assertEquals(element.getElement(By.xpath("(//div//generic-error-length/eui-badge)[1]")).getText(), errors);
+        Assert.assertTrue(elements.isElementPresent("(//div//generic-error-length/eui-badge)[1]"), "No validation error");
+        Assert.assertEquals(page.locator("(//div//generic-error-length/eui-badge)[1]").innerText(), errors);
     }
 
     public void verifyTotalEmissionErrors(Properties params) {
         String errors = params.getProperty(TOTAL_EMISSION_ERRORS);
-        Assert.assertTrue(isElementPresent(By.xpath("//a[@class='navigation-title']/generic-error-length/eui-badge")), "No validation error");
-        Assert.assertEquals(element.getElement(By.xpath("//a[@class='navigation-title']/generic-error-length/eui-badge")).getText(), errors);
+        Assert.assertTrue(elements.isElementPresent("//a[@class='navigation-title']/generic-error-length/eui-badge"), "No validation error");
+        Assert.assertEquals(page.locator("//a[@class='navigation-title']/generic-error-length/eui-badge").innerText(), errors);
     }
 
     public void verifyErrorFieldIsDisplayed(Properties params) {
         String errorFieldLabel = params.getProperty(ERROR_FIELD);
-        Assert.assertTrue(isElementPresent(By.xpath("//label[contains(text(),'" + errorFieldLabel + "')]")));
+        Assert.assertTrue(elements.isElementPresent("//label[contains(text(),'" + errorFieldLabel + "')]"));
     }
 
     public void verifyValidationScreenErrorCount(Properties params) {
         String errors = params.getProperty(SCREEN_ERRORS);
-        Assert.assertTrue(isElementPresent(By.xpath("//div[@role='alert']//eui-badge")), "No validation error");
-        Assert.assertEquals(element.getElement(By.xpath("//div[@role='alert']//eui-badge")).getText(), errors);
+        Assert.assertTrue(elements.isElementPresent("//div[@role='alert']//eui-badge"), "No validation error");
+        Assert.assertEquals(page.locator("//div[@role='alert']//eui-badge").innerText(), errors);
     }
 
     public void verifyScreenValidationErrorsMissing() {
         System.out.println("Verifying~ Validation errors are not displayed");
-        Assert.assertFalse(isElementPresent(By.xpath("//eui-alert[contains(@class,'eui-alert--danger')]")),
+        Assert.assertFalse(elements.isElementPresent("//eui-alert[contains(@class,'eui-alert--danger')]"),
                 "Validation errors exist");
     }
 
     public void verifySpecificFieldValidationErrors(Properties params) {
         List<String> errors = testDataConfig.getMultipleStringParameters(params, SPECIFIC_ERRORS);
         List<String> actualErrors = new ArrayList<>();
-        int errorsCount = new Element(utils).getElements(By.xpath("(//div[@role='alert']//li/a)")).size();
+        int errorsCount = page.locator("(//div[@role='alert']//li/a)").count();
         for (int i = 1; i <= errorsCount; i++) {
-            actualErrors.add(element.getElement(By.xpath("(//div[@role='alert']//li/a)[" + i + "]")).getText());
+            actualErrors.add(page.locator("(//div[@role='alert']//li/a)[" + i + "]").innerText());
         }
         Collections.sort(errors);
         Collections.sort(actualErrors);
         Assert.assertEquals(actualErrors, errors, "Incorrect number of displayed errors");
     }
-
-
-    public void verifyAvailableActionsOnTableUsingList(String tableID, boolean expectedVisibility, TABLETYPE tabletype) {
-        List<String> availableActions = getListOfAvailableActionsBasedOnTable(tabletype);
-        wait.waitForLoad();
-        int actionsColumn = table.getPTableColumnSequence(tableID, "Actions");
-        wait.forElementToBePresent(By.xpath("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]"));
-        String totalRecords = utils.webDriverFactory().getDriver().findElement(By.xpath("//eui-dropdown//following::div[contains(@class,'eui-table-paginator__page-range')]")).getText();
-        totalRecords = totalRecords.substring(totalRecords.lastIndexOf(" ")).trim();
-        int tableSize = 0;
-        do {
-            tableSize += table.getPTableBodyRows(tableID);
-            int currentRow = 1;
-            do {
-                for (String action : availableActions) {
-                    boolean visibilityOfAction = isElementPresent(By.xpath(
-                            "//table[@id='" + tableID + "']//tbody//tr[" + currentRow + "]/td[" + actionsColumn + "]" +
-                                    "//button[@id='" + action + "']"));
-                    Assert.assertEquals(visibilityOfAction, expectedVisibility,
-                            "The " + action + " Action should be available for table " + tableID);
-                }
-                currentRow++;
-            } while (currentRow <= table.getPTableBodyRows(tableID));
-
-            if (table.isGoToNextPageButtonEnabled(tableID))
-                table.goToNextPage(tableID);
-            wait.waitForLoad();
-        } while (tableSize < Integer.parseInt(totalRecords));
-    }
-
-
 }
