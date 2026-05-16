@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\user\\\\Desktop\\\\Playwright_e2e\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx playwright *)",
+      "Bash(dir /s /b *.ts)",
+      "Bash(findstr /v node_modules)",
+      "Bash(yarn --version)",
+      "Bash(yarn install *)"
+    ]
+  }
+}

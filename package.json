@@ -1,0 +1,21 @@
+{
+  "name": "playwright-e2e",
+  "version": "1.0.0",
+  "description": "Playwright E2E test suite",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:e2e": "playwright test tests/e2e",
+    "test:api": "playwright test tests/api",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "report": "allure generate allure-results --clean && allure open",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.19.41",
+    "allure-playwright": "^3.8.0",
+    "typescript": "^5.4.0"
+  }
+}

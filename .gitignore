@@ -1,0 +1,11 @@
+node_modules/
+.yarn/cache
+.yarn/unplugged
+package-lock.json
+dist/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+.env
+*.local
